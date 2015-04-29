@@ -1,0 +1,912 @@
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Include source file for dlmalloc */
+#undef DLMALLOC_SOURCE_INCLUDE
+
+/* Alberta version found by configure, should be 0x300 for 3.0 */
+#undef DUNE_ALBERTA_VERSION
+
+/* Define to the version of dune-alugrid */
+#undef DUNE_ALUGRID_VERSION
+
+/* Define to the major version of dune-alugrid */
+#undef DUNE_ALUGRID_VERSION_MAJOR
+
+/* Define to the minor version of dune-alugrid */
+#undef DUNE_ALUGRID_VERSION_MINOR
+
+/* Define to the revision of dune-alugrid */
+#undef DUNE_ALUGRID_VERSION_REVISION
+
+/* Define to the version of dune-common */
+#undef DUNE_COMMON_VERSION
+
+/* Define to the major version of dune-common */
+#undef DUNE_COMMON_VERSION_MAJOR
+
+/* Define to the minor version of dune-common */
+#undef DUNE_COMMON_VERSION_MINOR
+
+/* Define to the revision of dune-common */
+#undef DUNE_COMMON_VERSION_REVISION
+
+/* Define to the version of dune-geometry */
+#undef DUNE_GEOMETRY_VERSION
+
+/* Define to the major version of dune-geometry */
+#undef DUNE_GEOMETRY_VERSION_MAJOR
+
+/* Define to the minor version of dune-geometry */
+#undef DUNE_GEOMETRY_VERSION_MINOR
+
+/* Define to the revision of dune-geometry */
+#undef DUNE_GEOMETRY_VERSION_REVISION
+
+/* If this is set, public access to the implementation of facades like Entity,
+   Geometry, etc. is granted. */
+#undef DUNE_GRID_EXPERIMENTAL_GRID_EXTENSIONS
+
+/* Define to the version of dune-grid */
+#undef DUNE_GRID_VERSION
+
+/* Define to the major version of dune-grid */
+#undef DUNE_GRID_VERSION_MAJOR
+
+/* Define to the minor version of dune-grid */
+#undef DUNE_GRID_VERSION_MINOR
+
+/* Define to the revision of dune-grid */
+#undef DUNE_GRID_VERSION_REVISION
+
+/* Define to the version of dune-istl */
+#undef DUNE_ISTL_VERSION
+
+/* Define to the major version of dune-istl */
+#undef DUNE_ISTL_VERSION_MAJOR
+
+/* Define to the minor version of dune-istl */
+#undef DUNE_ISTL_VERSION_MINOR
+
+/* Define to the revision of dune-istl */
+#undef DUNE_ISTL_VERSION_REVISION
+
+/* Define to the version of dune-localfunctions */
+#undef DUNE_LOCALFUNCTIONS_VERSION
+
+/* Define to the major version of dune-localfunctions */
+#undef DUNE_LOCALFUNCTIONS_VERSION_MAJOR
+
+/* Define to the minor version of dune-localfunctions */
+#undef DUNE_LOCALFUNCTIONS_VERSION_MINOR
+
+/* Define to the revision of dune-localfunctions */
+#undef DUNE_LOCALFUNCTIONS_VERSION_REVISION
+
+/* Standard debug streams with a level below will collapse to doing nothing */
+#undef DUNE_MINIMAL_DEBUG_LEVEL
+
+/* Define to the version of dune-pdelab */
+#undef DUNE_PDELAB_VERSION
+
+/* Define to the major version of dune-pdelab */
+#undef DUNE_PDELAB_VERSION_MAJOR
+
+/* Define to the minor version of dune-pdelab */
+#undef DUNE_PDELAB_VERSION_MINOR
+
+/* Define to the revision of dune-pdelab */
+#undef DUNE_PDELAB_VERSION_REVISION
+
+/* Define to the version of dune-typetree */
+#undef DUNE_TYPETREE_VERSION
+
+/* Define to the major version of dune-typetree */
+#undef DUNE_TYPETREE_VERSION_MAJOR
+
+/* Define to the minor version of dune-typetree */
+#undef DUNE_TYPETREE_VERSION_MINOR
+
+/* Define to the revision of dune-typetree */
+#undef DUNE_TYPETREE_VERSION_REVISION
+
+/* Define to dummy `main' function (if any) required to link to the Fortran
+   libraries. */
+#undef F77_DUMMY_MAIN
+
+/* Define to dummy `main' function (if any) required to link to the Fortran
+   libraries. */
+#undef FC_DUMMY_MAIN
+
+/* Define if F77 and FC dummy `main' functions are identical. */
+#undef FC_DUMMY_MAIN_EQ_F77
+
+/* Define to a macro mangling the given C identifier (in lower and upper
+   case), which must not contain underscores, for linking with Fortran. */
+#undef FC_FUNC
+
+/* As FC_FUNC, but for C identifiers containing underscores. */
+#undef FC_FUNC_
+
+/* does the compiler support __attribute__((deprecated))? */
+#undef HAS_ATTRIBUTE_DEPRECATED
+
+/* does the compiler support __attribute__((deprecated("message"))? */
+#undef HAS_ATTRIBUTE_DEPRECATED_MSG
+
+/* does the compiler support __attribute__((unused))? */
+#undef HAS_ATTRIBUTE_UNUSED
+
+/* This is only true if alberta-library was found by configure _and_ if the
+   application uses the ALBERTA_CPPFLAGS */
+#undef HAVE_ALBERTA
+
+/* This is only true if alugrid-library was found by configure _and_ if the
+   application uses the ALUGRID_CPPFLAGS */
+#undef HAVE_ALUGRID
+
+/* Define to 1 if you have the <alugrid_parallel.h> header file. */
+#undef HAVE_ALUGRID_PARALLEL_H
+
+/* Define to 1 if you have the <alugrid_serial.h> header file. */
+#undef HAVE_ALUGRID_SERIAL_H
+
+/* Define to 1 if amiramesh-library is found */
+#undef HAVE_AMIRAMESH
+
+/* Use the Apple OpenGL framework. */
+#undef HAVE_APPLE_OPENGL_FRAMEWORK
+
+/* Define if you have a BLAS library. */
+#undef HAVE_BLAS
+
+/* define if the Boost library is available */
+#undef HAVE_BOOST
+
+/* define if the Boost::Fusion headers are available */
+#undef HAVE_BOOST_FUSION
+
+/* Define to 1 if C++11 constexpr is supported */
+#undef HAVE_CONSTEXPR
+
+/* does the compiler support abi::__cxa_demangle */
+#undef HAVE_CXA_DEMANGLE
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if dlmalloc package is found */
+#undef HAVE_DLMALLOC
+
+/* Define to 1 if dune-alugrid was found */
+#undef HAVE_DUNE_ALUGRID
+
+/* Define to ENABLE_BOOST if the Boost library is available */
+#undef HAVE_DUNE_BOOST
+
+/* Define to 1 if dune-common was found */
+#undef HAVE_DUNE_COMMON
+
+/* Define to 1 if dune-geometry was found */
+#undef HAVE_DUNE_GEOMETRY
+
+/* Define to 1 if dune-grid was found */
+#undef HAVE_DUNE_GRID
+
+/* THIS MACRO IS DEPRECATED AND ONLY KEPT FOR BACKWARDS COMPATIBILITY UNTIL
+   THE NEXT RELEASE! */
+#undef HAVE_DUNE_HASH
+
+/* Define to 1 if dune-istl was found */
+#undef HAVE_DUNE_ISTL
+
+/* Define to 1 if dune-localfunctions was found */
+#undef HAVE_DUNE_LOCALFUNCTIONS
+
+/* Define to 1 if dune-pdelab was found */
+#undef HAVE_DUNE_PDELAB
+
+/* Define to 1 if dune-typetree was found */
+#undef HAVE_DUNE_TYPETREE
+
+/* This is only true if EIGEN was found by configure _and_ if the application
+   uses the EIGEN_CXXFLAGS */
+#undef HAVE_EIGEN
+
+/* Define to 1 if the GCC extension __typeof__ (decltype fallback) is
+   supported */
+#undef HAVE_GCC___TYPEOF__
+
+/* Was GMP found and GMP_CPPFLAGS used? */
+#undef HAVE_GMP
+
+/* This is only true if grape-library was found by configure _and_ if the
+   application uses the GRAPE_CPPFLAGS */
+#undef HAVE_GRAPE
+
+/* THIS MACRO IS DEPRECATED AND ONLY KEPT FOR BACKWARDS COMPATIBILITY UNTIL
+   THE NEXT RELEASE! */
+#undef HAVE_INTEGRAL_CONSTANT
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* does the compiler support the keyword 'final'? */
+#undef HAVE_KEYWORD_FINAL
+
+/* Define if you have LAPACK library. */
+#undef HAVE_LAPACK
+
+/* Define to 1 if you have the `gmp' library (-L$with_gmp/lib -lgmp). */
+#undef HAVE_LIBGMP
+
+/* Define to 1 if you have the `gmpxx' library (-L$with_gmp/lib -lgmpxx). */
+#undef HAVE_LIBGMPXX
+
+/* Define to 1 if you have the `m' library (-lm). */
+#undef HAVE_LIBM
+
+/* Define to 1 if you have the <malloc.h> header file. */
+#undef HAVE_MALLOC_H
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if `expansions' is a member of `mem_usage_t'. */
+#undef HAVE_MEM_USAGE_T_EXPANSIONS
+
+/* Define if you have METIS library */
+#undef HAVE_METIS
+
+/* Define if you have the MPI library. This is only true if MPI was found by
+   configure _and_ if the application uses the DUNEMPICPPFLAGS (or the
+   deprecated MPI_CPPFLAGS) */
+#undef HAVE_MPI
+
+/* Define to 1 if you have the symbol mprotect. */
+#undef HAVE_MPROTECT
+
+/* Define to 1 if C++11 nonexcept specifier is supported */
+#undef HAVE_NOEXCEPT_SPECIFIER
+
+/* Define to 1 if nullptr is supported */
+#undef HAVE_NULLPTR
+
+/* Define if you have a PARDISO library. */
+#undef HAVE_PARDISO
+
+/* Define if you have the Parmetis library. This is only true if MPI was found
+   by configure _and_ if the application uses the PARMETIS_CPPFLAGS */
+#undef HAVE_PARMETIS
+
+/* Define if you have the PETSc library. This is only true if the application
+   uses the PETSC_CPPFLAGS */
+#undef HAVE_PETSC
+
+/* Define if clock_gettime() is available, given _POSIX_C_SOURCE >= 199309L */
+#undef HAVE_POSIX_CLOCK
+
+/* Define to 1 if psurface-library is found */
+#undef HAVE_PSURFACE
+
+/* If set we have at least psurface version 2.0 */
+#undef HAVE_PSURFACE_2_0
+
+/* Define if you have POSIX threads libraries and header files. */
+#undef HAVE_PTHREAD
+
+/* Define to 1 if C++11 range-based for is supported */
+#undef HAVE_RANGE_BASED_FOR
+
+/* Define to 1 if you have the <rpc/rpc.h> header file. */
+#undef HAVE_RPC_RPC_H
+
+/* THIS MACRO IS DEPRECATED AND ONLY KEPT FOR BACKWARDS COMPATIBILITY UNTIL
+   THE NEXT RELEASE! */
+#undef HAVE_RVALUE_REFERENCES
+
+/* This is only true if sionlib-library was found by configure _and_ if the
+   application uses the SIONLIB_CPPFLAGS */
+#undef HAVE_SIONLIB
+
+/* Define to 1 if you have the <sion.h> header file. */
+#undef HAVE_SION_H
+
+/* Define to 1 if you have the `sqrt' function. */
+#undef HAVE_SQRT
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if the C++11 keyword decltype is supported */
+#undef HAVE_STD_DECLTYPE
+
+/* THIS MACRO IS DEPRECATED AND ONLY KEPT FOR BACKWARDS COMPATIBILITY UNTIL
+   THE NEXT RELEASE! */
+#undef HAVE_STD_HASH
+
+/* Define to 1 if you have the `strchr' function. */
+#undef HAVE_STRCHR
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to ENABLE_SUPERLU if SUPERLU is found */
+#undef HAVE_SUPERLU
+
+/* Define to 1 if SUPERLU_DIST is found */
+#undef HAVE_SUPERLU_DIST
+
+/* Define to 1 if you have <sys/mman.h>. */
+#undef HAVE_SYS_MMAN_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if template aliases are supported */
+#undef HAVE_TEMPLATE_ALIASES
+
+/* THIS MACRO IS DEPRECATED AND ONLY KEPT FOR BACKWARDS COMPATIBILITY UNTIL
+   THE NEXT RELEASE! */
+#undef HAVE_TYPE_TRAITS
+
+/* This is only true if UG was found by configure _and_ if the application
+   uses the UG_CPPFLAGS */
+#undef HAVE_UG
+
+/* This is only true if umfpack-library was found by configure _and_ if the
+   application uses the UMFPACK_CPPFLAGS */
+#undef HAVE_UMFPACK
+
+/* Define to 1 if you have the <umfpack.h> header file. */
+#undef HAVE_UMFPACK_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* THIS MACRO IS DEPRECATED AND ONLY KEPT FOR BACKWARDS COMPATIBILITY UNTIL
+   THE NEXT RELEASE! */
+#undef HAVE_VARIADIC_CONSTRUCTOR_SFINAE
+
+/* THIS MACRO IS DEPRECATED AND ONLY KEPT FOR BACKWARDS COMPATIBILITY UNTIL
+   THE NEXT RELEASE! */
+#undef HAVE_VARIADIC_TEMPLATES
+
+/* Define to 1 if you have the <windows.h> header file. */
+#undef HAVE_WINDOWS_H
+
+/* Was zlib found and ZLIB_CPPFLAGS used? */
+#undef HAVE_ZLIB
+
+/* This is only true if zoltan-library was found by configure _and_ if the
+   application uses the ZOLTAN_CPPFLAGS */
+#undef HAVE_ZOLTAN
+
+/* Define to 1 if you have the <zoltan_cpp.h> header file. */
+#undef HAVE_ZOLTAN_CPP_H
+
+/* Define to the version of imbibitionEq */
+#undef IMBIBITIONEQ_VERSION
+
+/* Define to the major version of imbibitionEq */
+#undef IMBIBITIONEQ_VERSION_MAJOR
+
+/* Define to the minor version of imbibitionEq */
+#undef IMBIBITIONEQ_VERSION_MINOR
+
+/* Define to the revision of imbibitionEq */
+#undef IMBIBITIONEQ_VERSION_REVISION
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
+
+/* Define to 1 if MPI supports MPI-2 */
+#undef MPI_2
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* The namespace prefix of the psurface library */
+#undef PSURFACE_NAMESPACE
+
+/* Define to necessary symbol if this constant uses a non-standard name on
+   your system. */
+#undef PTHREAD_CREATE_JOINABLE
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* define to 1 if there SLU_DOUBLE imported by header slu_ddefs.h from SuperLU
+   */
+#undef SUPERLU_MIN_VERSION_4_3
+
+/* define to 1 if there is a header slu_ddefs.h in SuperLU */
+#undef SUPERLU_POST_2005_VERSION
+
+/* Define to 1 if your <sys/time.h> declares `struct tm'. */
+#undef TM_IN_SYS_TIME
+
+/* Version number of package */
+#undef VERSION
+
+/* Define to 1 if the X Window System is missing or not being used. */
+#undef X_DISPLAY_MISSING
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
+
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
+#undef inline
+#endif
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t
+
+/* add GRIDTYPE typedef for grid implementation Dune::AlbertaGrid< dimgrid >:
+    defining ALBERTAGRID during compilation typedefs this grid implementation as GridType
+    in namespace Dune::GridSelector;
+    also integer constants dimgrid and dimworld are set in this namespace.
+    The required headers for this grid implementation are also included.
+  */
+ #if HAVE_DUNE_GRID && defined ALBERTAGRID && ! defined USED_ALBERTAGRID_GRIDTYPE
+  #if HAVE_GRIDTYPE
+   #error "Ambiguous definition of GRIDTYPE."
+  #endif 
+
+  #ifndef WORLDDIM
+    #define WORLDDIM GRIDDIM
+  #endif
+  #if not (WORLDDIM >= GRIDDIM)
+    #error "WORLDDIM < GRIDDIM does not make sense."
+  #endif
+
+  #if ! (WORLDDIM == ALBERTA_DIM)
+    #error "Preprocessor assertion WORLDDIM == ALBERTA_DIM failed."
+  #endif
+
+  #include <dune/grid/albertagrid.hh>
+  #include <dune/grid/albertagrid/dgfparser.hh>
+
+  namespace Dune
+  {
+    namespace GridSelector
+    {
+      const int dimgrid = GRIDDIM;
+      const int dimworld = WORLDDIM;
+      typedef Dune::AlbertaGrid< dimgrid > GridType;
+    }
+  }
+  #define HAVE_GRIDTYPE 1
+  #define USED_ALBERTAGRID_GRIDTYPE 1
+#endif // #if HAVE_DUNE_GRID && defined ALBERTAGRID && ..
+
+
+#if ! HAVE_ALUGRID
+  /* add GRIDTYPE typedef for grid implementation Dune::ALUGrid< dimgrid, dimworld, Dune::simplex, Dune::conforming >:
+    defining ALUGRID_CONFORM during compilation typedefs this grid implementation as GridType
+    in namespace Dune::GridSelector;
+    also integer constants dimgrid and dimworld are set in this namespace.
+    The required headers for this grid implementation are also included.
+  */
+ #if HAVE_DUNE_GRID && defined ALUGRID_CONFORM && ! defined USED_ALUGRID_CONFORM_GRIDTYPE
+  #if HAVE_GRIDTYPE
+   #error "Ambiguous definition of GRIDTYPE."
+  #endif 
+
+  #ifndef WORLDDIM
+    #define WORLDDIM GRIDDIM
+  #endif
+  #if not (WORLDDIM >= GRIDDIM)
+    #error "WORLDDIM < GRIDDIM does not make sense."
+  #endif
+
+  #include <dune/alugrid/grid.hh>
+  #include <dune/alugrid/dgf.hh>
+
+  namespace Dune
+  {
+    namespace GridSelector
+    {
+      const int dimgrid = GRIDDIM;
+      const int dimworld = WORLDDIM;
+      typedef Dune::ALUGrid< dimgrid, dimworld, Dune::simplex, Dune::conforming > GridType;
+    }
+  }
+  #define HAVE_GRIDTYPE 1
+  #define USED_ALUGRID_CONFORM_GRIDTYPE 1
+#endif // #if HAVE_DUNE_GRID && defined ALUGRID_CONFORM && ..
+#endif // #if ! HAVE_ALUGRID
+
+
+
+#if ! HAVE_ALUGRID
+  /* add GRIDTYPE typedef for grid implementation Dune::ALUGrid< dimgrid, dimworld, Dune::cube, Dune::nonconforming >:
+    defining ALUGRID_CUBE during compilation typedefs this grid implementation as GridType
+    in namespace Dune::GridSelector;
+    also integer constants dimgrid and dimworld are set in this namespace.
+    The required headers for this grid implementation are also included.
+  */
+ #if HAVE_DUNE_GRID && defined ALUGRID_CUBE && ! defined USED_ALUGRID_CUBE_GRIDTYPE
+  #if HAVE_GRIDTYPE
+   #error "Ambiguous definition of GRIDTYPE."
+  #endif 
+
+  #ifndef WORLDDIM
+    #define WORLDDIM GRIDDIM
+  #endif
+  #if not (WORLDDIM >= GRIDDIM)
+    #error "WORLDDIM < GRIDDIM does not make sense."
+  #endif
+
+  #include <dune/alugrid/grid.hh>
+  #include <dune/alugrid/dgf.hh>
+
+  namespace Dune
+  {
+    namespace GridSelector
+    {
+      const int dimgrid = GRIDDIM;
+      const int dimworld = WORLDDIM;
+      typedef Dune::ALUGrid< dimgrid, dimworld, Dune::cube, Dune::nonconforming > GridType;
+    }
+  }
+  #define HAVE_GRIDTYPE 1
+  #define USED_ALUGRID_CUBE_GRIDTYPE 1
+#endif // #if HAVE_DUNE_GRID && defined ALUGRID_CUBE && ..
+#endif // #if ! HAVE_ALUGRID
+
+
+
+#if ! HAVE_ALUGRID
+  /* add GRIDTYPE typedef for grid implementation Dune::ALUGrid< dimgrid, dimworld, Dune::simplex, Dune::nonconforming >:
+    defining ALUGRID_SIMPLEX during compilation typedefs this grid implementation as GridType
+    in namespace Dune::GridSelector;
+    also integer constants dimgrid and dimworld are set in this namespace.
+    The required headers for this grid implementation are also included.
+  */
+ #if HAVE_DUNE_GRID && defined ALUGRID_SIMPLEX && ! defined USED_ALUGRID_SIMPLEX_GRIDTYPE
+  #if HAVE_GRIDTYPE
+   #error "Ambiguous definition of GRIDTYPE."
+  #endif 
+
+  #ifndef WORLDDIM
+    #define WORLDDIM GRIDDIM
+  #endif
+  #if not (WORLDDIM >= GRIDDIM)
+    #error "WORLDDIM < GRIDDIM does not make sense."
+  #endif
+
+  #include <dune/alugrid/grid.hh>
+  #include <dune/alugrid/dgf.hh>
+
+  namespace Dune
+  {
+    namespace GridSelector
+    {
+      const int dimgrid = GRIDDIM;
+      const int dimworld = WORLDDIM;
+      typedef Dune::ALUGrid< dimgrid, dimworld, Dune::simplex, Dune::nonconforming > GridType;
+    }
+  }
+  #define HAVE_GRIDTYPE 1
+  #define USED_ALUGRID_SIMPLEX_GRIDTYPE 1
+#endif // #if HAVE_DUNE_GRID && defined ALUGRID_SIMPLEX && ..
+#endif // #if ! HAVE_ALUGRID
+
+
+/* add GRIDTYPE typedef for grid implementation Dune::UGGrid< dimgrid >:
+    defining UGGRID during compilation typedefs this grid implementation as GridType
+    in namespace Dune::GridSelector;
+    also integer constants dimgrid and dimworld are set in this namespace.
+    The required headers for this grid implementation are also included.
+  */
+ #if HAVE_DUNE_GRID && defined UGGRID && ! defined USED_UGGRID_GRIDTYPE
+  #if HAVE_GRIDTYPE
+   #error "Ambiguous definition of GRIDTYPE."
+  #endif 
+
+  #ifndef WORLDDIM
+    #define WORLDDIM GRIDDIM
+  #endif
+  #if not (WORLDDIM >= GRIDDIM)
+    #error "WORLDDIM < GRIDDIM does not make sense."
+  #endif
+
+  #if ! (GRIDDIM == WORLDDIM)
+    #error "Preprocessor assertion GRIDDIM == WORLDDIM failed."
+  #endif
+
+  #include <dune/grid/uggrid.hh>
+  #include <dune/grid/io/file/dgfparser/dgfug.hh>
+
+  namespace Dune
+  {
+    namespace GridSelector
+    {
+      const int dimgrid = GRIDDIM;
+      const int dimworld = WORLDDIM;
+      typedef Dune::UGGrid< dimgrid > GridType;
+    }
+  }
+  #define HAVE_GRIDTYPE 1
+  #define USED_UGGRID_GRIDTYPE 1
+#endif // #if HAVE_DUNE_GRID && defined UGGRID && ..
+
+/* add GRIDTYPE typedef for grid implementation Dune::ALUGrid< dimgrid, dimworld, simplex, conforming >:
+    defining ALUGRID_CONFORM during compilation typedefs this grid implementation as GridType
+    in namespace Dune::GridSelector;
+    also integer constants dimgrid and dimworld are set in this namespace.
+    The required headers for this grid implementation are also included.
+  */
+ #if HAVE_DUNE_GRID && defined ALUGRID_CONFORM && ! defined USED_ALUGRID_CONFORM_GRIDTYPE
+  #if HAVE_GRIDTYPE
+   #error "Ambiguous definition of GRIDTYPE."
+  #endif 
+
+  #ifndef WORLDDIM
+    #define WORLDDIM GRIDDIM
+  #endif
+  #if not (WORLDDIM >= GRIDDIM)
+    #error "WORLDDIM < GRIDDIM does not make sense."
+  #endif
+
+  #include <dune/grid/alugrid.hh>
+  #include <dune/grid/io/file/dgfparser/dgfalu.hh>
+
+  namespace Dune
+  {
+    namespace GridSelector
+    {
+      const int dimgrid = GRIDDIM;
+      const int dimworld = WORLDDIM;
+      typedef Dune::ALUGrid< dimgrid, dimworld, simplex, conforming > GridType;
+    }
+  }
+  #define HAVE_GRIDTYPE 1
+  #define USED_ALUGRID_CONFORM_GRIDTYPE 1
+#endif // #if HAVE_DUNE_GRID && defined ALUGRID_CONFORM && ..
+
+/* add GRIDTYPE typedef for grid implementation Dune::ALUGrid< dimgrid, dimworld, cube, nonconforming >:
+    defining ALUGRID_CUBE during compilation typedefs this grid implementation as GridType
+    in namespace Dune::GridSelector;
+    also integer constants dimgrid and dimworld are set in this namespace.
+    The required headers for this grid implementation are also included.
+  */
+ #if HAVE_DUNE_GRID && defined ALUGRID_CUBE && ! defined USED_ALUGRID_CUBE_GRIDTYPE
+  #if HAVE_GRIDTYPE
+   #error "Ambiguous definition of GRIDTYPE."
+  #endif 
+
+  #ifndef WORLDDIM
+    #define WORLDDIM GRIDDIM
+  #endif
+  #if not (WORLDDIM >= GRIDDIM)
+    #error "WORLDDIM < GRIDDIM does not make sense."
+  #endif
+
+  #include <dune/grid/alugrid.hh>
+  #include <dune/grid/io/file/dgfparser/dgfalu.hh>
+
+  namespace Dune
+  {
+    namespace GridSelector
+    {
+      const int dimgrid = GRIDDIM;
+      const int dimworld = WORLDDIM;
+      typedef Dune::ALUGrid< dimgrid, dimworld, cube, nonconforming > GridType;
+    }
+  }
+  #define HAVE_GRIDTYPE 1
+  #define USED_ALUGRID_CUBE_GRIDTYPE 1
+#endif // #if HAVE_DUNE_GRID && defined ALUGRID_CUBE && ..
+
+/* add GRIDTYPE typedef for grid implementation Dune::ALUGrid< dimgrid, dimworld, simplex, nonconforming >:
+    defining ALUGRID_SIMPLEX during compilation typedefs this grid implementation as GridType
+    in namespace Dune::GridSelector;
+    also integer constants dimgrid and dimworld are set in this namespace.
+    The required headers for this grid implementation are also included.
+  */
+ #if HAVE_DUNE_GRID && defined ALUGRID_SIMPLEX && ! defined USED_ALUGRID_SIMPLEX_GRIDTYPE
+  #if HAVE_GRIDTYPE
+   #error "Ambiguous definition of GRIDTYPE."
+  #endif 
+
+  #ifndef WORLDDIM
+    #define WORLDDIM GRIDDIM
+  #endif
+  #if not (WORLDDIM >= GRIDDIM)
+    #error "WORLDDIM < GRIDDIM does not make sense."
+  #endif
+
+  #include <dune/grid/alugrid.hh>
+  #include <dune/grid/io/file/dgfparser/dgfalu.hh>
+
+  namespace Dune
+  {
+    namespace GridSelector
+    {
+      const int dimgrid = GRIDDIM;
+      const int dimworld = WORLDDIM;
+      typedef Dune::ALUGrid< dimgrid, dimworld, simplex, nonconforming > GridType;
+    }
+  }
+  #define HAVE_GRIDTYPE 1
+  #define USED_ALUGRID_SIMPLEX_GRIDTYPE 1
+#endif // #if HAVE_DUNE_GRID && defined ALUGRID_SIMPLEX && ..
+
+/* add GRIDTYPE typedef for grid implementation Dune::OneDGrid:
+    defining ONEDGRID during compilation typedefs this grid implementation as GridType
+    in namespace Dune::GridSelector;
+    also integer constants dimgrid and dimworld are set in this namespace.
+    The required headers for this grid implementation are also included.
+  */
+ #if HAVE_DUNE_GRID && defined ONEDGRID && ! defined USED_ONEDGRID_GRIDTYPE
+  #if HAVE_GRIDTYPE
+   #error "Ambiguous definition of GRIDTYPE."
+  #endif 
+
+  #ifndef WORLDDIM
+    #define WORLDDIM GRIDDIM
+  #endif
+  #if not (WORLDDIM >= GRIDDIM)
+    #error "WORLDDIM < GRIDDIM does not make sense."
+  #endif
+
+  #if ! ((GRIDDIM == 1) && (WORLDDIM == 1))
+    #error "Preprocessor assertion (GRIDDIM == 1) && (WORLDDIM == 1) failed."
+  #endif
+
+  #include <dune/grid/onedgrid.hh>
+  #include <dune/grid/io/file/dgfparser/dgfoned.hh>
+
+  namespace Dune
+  {
+    namespace GridSelector
+    {
+      const int dimgrid = GRIDDIM;
+      const int dimworld = WORLDDIM;
+      typedef Dune::OneDGrid GridType;
+    }
+  }
+  #define HAVE_GRIDTYPE 1
+  #define USED_ONEDGRID_GRIDTYPE 1
+#endif // #if HAVE_DUNE_GRID && defined ONEDGRID && ..
+
+/* add GRIDTYPE typedef for grid implementation Dune::SGrid< dimgrid, dimworld >:
+    defining SGRID during compilation typedefs this grid implementation as GridType
+    in namespace Dune::GridSelector;
+    also integer constants dimgrid and dimworld are set in this namespace.
+    The required headers for this grid implementation are also included.
+  */
+ #if HAVE_DUNE_GRID && defined SGRID && ! defined USED_SGRID_GRIDTYPE
+  #if HAVE_GRIDTYPE
+   #error "Ambiguous definition of GRIDTYPE."
+  #endif 
+
+  #ifndef WORLDDIM
+    #define WORLDDIM GRIDDIM
+  #endif
+  #if not (WORLDDIM >= GRIDDIM)
+    #error "WORLDDIM < GRIDDIM does not make sense."
+  #endif
+
+  #include <dune/grid/sgrid.hh>
+  #include <dune/grid/io/file/dgfparser/dgfs.hh>
+
+  namespace Dune
+  {
+    namespace GridSelector
+    {
+      const int dimgrid = GRIDDIM;
+      const int dimworld = WORLDDIM;
+      typedef Dune::SGrid< dimgrid, dimworld > GridType;
+    }
+  }
+  #define HAVE_GRIDTYPE 1
+  #define USED_SGRID_GRIDTYPE 1
+#endif // #if HAVE_DUNE_GRID && defined SGRID && ..
+
+/* add GRIDTYPE typedef for grid implementation Dune::YaspGrid< dimgrid >:
+    defining YASPGRID during compilation typedefs this grid implementation as GridType
+    in namespace Dune::GridSelector;
+    also integer constants dimgrid and dimworld are set in this namespace.
+    The required headers for this grid implementation are also included.
+  */
+ #if HAVE_DUNE_GRID && defined YASPGRID && ! defined USED_YASPGRID_GRIDTYPE
+  #if HAVE_GRIDTYPE
+   #error "Ambiguous definition of GRIDTYPE."
+  #endif 
+
+  #ifndef WORLDDIM
+    #define WORLDDIM GRIDDIM
+  #endif
+  #if not (WORLDDIM >= GRIDDIM)
+    #error "WORLDDIM < GRIDDIM does not make sense."
+  #endif
+
+  #if ! (GRIDDIM == WORLDDIM)
+    #error "Preprocessor assertion GRIDDIM == WORLDDIM failed."
+  #endif
+
+  #include <dune/grid/yaspgrid.hh>
+  #include <dune/grid/io/file/dgfparser/dgfyasp.hh>
+
+  namespace Dune
+  {
+    namespace GridSelector
+    {
+      const int dimgrid = GRIDDIM;
+      const int dimworld = WORLDDIM;
+      typedef Dune::YaspGrid< dimgrid > GridType;
+    }
+  }
+  #define HAVE_GRIDTYPE 1
+  #define USED_YASPGRID_GRIDTYPE 1
+#endif // #if HAVE_DUNE_GRID && defined YASPGRID && ..
+
+
+#if ! HAVE_ALUGRID
+  /* add GRIDTYPE typedef for grid implementation :
+    defining ALUGRID_DUMMY_DONT_USE during compilation typedefs this grid implementation as GridType
+    in namespace Dune::GridSelector;
+    also integer constants dimgrid and dimworld are set in this namespace.
+    The required headers for this grid implementation are also included.
+  */
+ #if HAVE_DUNE_GRID && defined ALUGRID_DUMMY_DONT_USE && ! defined USED_ALUGRID_DUMMY_DONT_USE_GRIDTYPE
+  #if HAVE_GRIDTYPE
+   #error "Ambiguous definition of GRIDTYPE."
+  #endif 
+
+  #ifndef WORLDDIM
+    #define WORLDDIM GRIDDIM
+  #endif
+  #if not (WORLDDIM >= GRIDDIM)
+    #error "WORLDDIM < GRIDDIM does not make sense."
+  #endif
+
+  #include <>
+  #include <>
+
+  namespace Dune
+  {
+    namespace GridSelector
+    {
+      const int dimgrid = GRIDDIM;
+      const int dimworld = WORLDDIM;
+      typedef  GridType;
+    }
+  }
+  #define HAVE_GRIDTYPE 1
+  #define USED_ALUGRID_DUMMY_DONT_USE_GRIDTYPE 1
+#endif // #if HAVE_DUNE_GRID && defined ALUGRID_DUMMY_DONT_USE && ..
+#endif // #if ! HAVE_ALUGRID
+

@@ -1,0 +1,55 @@
+Permeability = 1.0
+Porosity = 1.0
+Delta = 0.05
+AlphaCutOffMultiplier =  1.0E-3
+Model = all
+#Model = constant_linear 
+#Model = variable_linear 
+#Model = nonlinear 
+BoundaryFunction = 0 # 0 = 0.35 + 0.2 * sin(2*PI*t)
+                     # 1 = ((0.9-0.1)/PI)*atan((2*t-1)/0.1)+(0.9+0.1)/2
+                     # 2 = -((0.9-0.1)/PI)*atan((2*t-1)/0.1)+(0.9+0.1)/2
+                     # 3 = 0.35 - 0.2* std::sin(2*M_PI*t)
+                     # 4 = 0.5 + 0.49* std::sin(2*M_PI*t)
+                     # 5 = 1.0
+FluxFunction = 1   # 0 = artificial 
+                   # 1 = van Genuchten
+[Grid]
+Length = 1.0  # Length of the side of the grid
+NPoints  = 1000 #  No of points in each coordinate direction 
+Q = 0.3  # portion of the mesh points used to resolve BL
+Sigma = 1 # Grading of the mesh inside the layer (?)
+
+[Time]
+Final = 1
+Dt    = 0.0000001
+DtOut = 0.01
+DtMax = 0.01
+
+[Refinement]
+Level = 0
+
+[AlphaFunction]
+Amplitude = 1.0
+
+[NewtonParameters]
+ReassembleThreshold = 0.0
+LineSearchMaxIterations = 50
+MaxIterations = 1000
+AbsoluteLimit = 1e-10
+Reduction = 1e-9
+LinearReduction = 1e-6
+LineSearchDamping = 0.9
+
+[Output]
+SimulationBaseName = del_0.05
+VTK = 0   # 0=false, 1=true
+TXT = 1   # 0=false, 1=true
+
+[Fluids]
+WettingViscosity =  1E-3
+NonWettingViscosity = 0.8E-3
+
+[VanGenuchten]
+Alpha = 2.0
+N    = 2.0
