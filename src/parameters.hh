@@ -16,7 +16,7 @@
 //#include <dune/common/parametertree.hh>
 
 enum class Model{
-  nonlinear, constant_linear, variable_linear, all, size
+  new_nonlinear, nonlinear, constant_linear, variable_linear, all, size
 };
 
 // Boundary value functions
@@ -74,6 +74,8 @@ struct Params{
       model = Model::variable_linear;
     else if(str_model == std::string("nonlinear"))
       model = Model::nonlinear;
+    else if(str_model == std::string("new_nonlinear"))
+      model = Model::new_nonlinear;
     else if(str_model == std::string("all"))
       model = Model::all;
     else throw std::runtime_error("Model from input file is unknown");

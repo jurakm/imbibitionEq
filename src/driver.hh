@@ -111,6 +111,8 @@ void driver(GV const& gv, Params params)  // take a copy of params
   std::string filenm;
   if(params.model == Model::nonlinear)
     filenm = params.str_sname+"nlin";
+  else if(params.model == Model::new_nonlinear)
+    filenm = params.str_sname+"n_nlin";
   else if(params.model == Model::constant_linear)
     filenm = params.str_sname+"clin";
   else if(params.model == Model::variable_linear)

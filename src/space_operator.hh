@@ -37,7 +37,7 @@ public:
   StationaryLocalOperator(const BCType& bctype_, // boundary cond.type
                           const Params& coeff_,  // koeficijent
                           unsigned int intorder_=3) :
-    bctype( bctype_ ), coeff(coeff_), intorder( intorder_ )
+    time_(0.0), bctype( bctype_ ), coeff(coeff_), intorder( intorder_ )
   {}
 
   // volume integral depending on test and ansatz functions
@@ -74,7 +74,7 @@ public:
 	    std::vector<Range> phi(lfsu.size());
 	    lfsu.finiteElement().localBasis ().evaluateFunction(it->position(), phi);
 
-	    // compute u at integration point
+	    // compute solution u (or beta(u)) at integration point
 	    RF u = 0.0;
 	    if (coeff.model == Model::nonlinear)
 	      {
@@ -89,23 +89,28 @@ public:
 	      alpha *= coeff.mean_alpha;
 	    else
 	      alpha *= coeff.alpha(coeff.bdry(time_));
+             // if new_nonlinear alpha is not changed
 
 	    // evaluate gradient of basis functions on reference element
 	    std::vector<Jacobian> js (lfsu.size ());
 	    lfsu.finiteElement().localBasis().evaluateJacobian(it->position (), js);
 
 	    // transform gradients from reference element to real element
-	    const Dune::FieldMatrix<DF, dimw, dim> &jac =
-		eg.geometry().jacobianInverseTransposed (it->position ());
+	    const Dune::FieldMatrix<DF, dimw, dim> &jac = eg.geometry().jacobianInverseTransposed (it->position ());
 	    std::vector<Gradient> gradphi(lfsu.size ());
 	    for (size_type i = 0; i < lfsu.size (); i++)
 	      jac.mv (js[i][0], gradphi[i]);
 
-	    // compute gradient of u
+	    // compute gradient of u or grad beta(u)
 	    Gradient gradu (0.0);
-	    for (size_type i = 0; i < lfsu.size (); ++i)
-	      gradu.axpy (x (lfsu, i), gradphi[i]);
-
+	    if (coeff.model == Model::new_nonlinear){
+	       for (size_type i = 0; i < lfsu.size (); ++i)
+	         gradu.axpy (coeff.beta(x(lfsu, i)), gradphi[i]); // grad beta(u)
+	    }
+	    else{  // In all other cases calculate grad u.
+	       for (size_type i = 0; i < lfsu.size (); ++i)
+	         gradu.axpy (x(lfsu, i), gradphi[i]);
+	    }
 	    // integrate grad u * grad phi_i + a*u*phi_i - f phi_i
 	    RF factor = it->weight () * eg.geometry ().integrationElement (it->position ());
 	    for (size_type i = 0; i < lfsu.size (); ++i)

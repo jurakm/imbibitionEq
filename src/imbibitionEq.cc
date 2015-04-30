@@ -126,6 +126,8 @@ main (int argc, char** argv)
 	      std::async (std::launch::async, driver<GV, Parameters>, gv, params);
 	      params.model = Model::nonlinear;
 	      std::async (std::launch::async, driver<GV, Parameters>, gv, params);
+	      params.model = Model::new_nonlinear;
+	      std::async (std::launch::async, driver<GV, Parameters>, gv, params);
 	    }
 	  else
 	    driver (gv, params);

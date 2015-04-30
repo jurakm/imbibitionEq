@@ -78,7 +78,8 @@ public:
     table.init(this, &RealImbibitionFunctions<TwoPhaseFunctions>::alpha, N_);
   }
   double alpha(double swe) const{
-    if(swe == 0.0 or swe == 1.0) return 0.0;
+    // extension by zero outside of the [0,1]
+    if(swe <= 0.0 or swe >= 1.0) return 0.0;
      const double lambdaw = TwoPhaseFunctions::krw(params, swe) / muw;
      const double lambdan = TwoPhaseFunctions::krn(params, swe) / mun;
      const double lambda = lambdaw + lambdan;
@@ -130,7 +131,9 @@ inline void Table<FunctionClass>::init(FunctionClass const * pobject_,
 template <typename FunctionClass>
 double Table<FunctionClass>::interpolate(double sw) const
 {
-  if(sw < 0. or sw > 1.0) throw std::range_error("sw not in [0,1]");
+  // Extension by constant outside [0,1].
+  if(sw <= 0.0)  sw = 0.0;
+  if(sw >= 1.0)  sw = 1.0;
 
   double int_part = 0.0;
   double fraction = std::modf(sw/h, &int_part);
