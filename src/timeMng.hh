@@ -9,7 +9,11 @@
 
 #include "parameters.hh"
 
-// time manager
+/// \brief  Time manager class.
+///
+/// Advance time by given time step respecting the end time and the output times.
+/// Change the time step depending on the number of solver iterations.
+
 template <typename Real>
 struct TimeMng{
   /** Current time. */
@@ -112,7 +116,7 @@ struct TimeMng{
 
   /** Is the final time reached? */
   bool done() const {
-    if ( std::abs(time - tend) < TOL ) return true;
+    if ( std::abs(time - tend) < TOL || time > tend) return true;
     return false;
   }
 

@@ -4,7 +4,7 @@ SUBDIRS =
 noinst_PROGRAMS = imbibitionEq  test_functions
 
 imbibitionEq_SOURCES = imbibitionEq.cc  bctype.hh driver.hh  space_operator.hh timeMng.hh\
-                       time_operator.hh integration.hh test.hh parameters.hh mgf.hh
+                       time_operator.hh integration.hh test.hh parameters.hh mgf.hh linear_analytic.hh
 
 test_functions_SOURCES = test_functions.cc vangenuchten.hh  imbibitionFunctions.hh
 

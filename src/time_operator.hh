@@ -6,11 +6,16 @@
 #include <dune/pdelab/localoperator/flags.hh>
 #include <dune/pdelab/localoperator/idefault.hh>
 
-/** a local operator for the mass operator (L_2 integral)
+/** \brief Bilinear form under the time derivative.
  *
- * \f{align*}{
- \int_\Omega Phi u v dx
- * \f}
+ *
+ * Class representing local operator for the accumulation term
+ * \f[
+         \int_\Omega \Phi u v dx
+ * \f]
+ * where \f$\Phi\f$ is the porosity.
+ *
+ * \tparam Params Parameter class here used only to get the porosity.
  */
 template <typename Params>
 class TimeLocalOperator 
@@ -21,12 +26,13 @@ class TimeLocalOperator
     public Dune::PDELab::InstationaryLocalOperatorDefaultMethods<double>
 {
 public:
-  // pattern assembly flags
+  //! pattern assembly flags
   enum { doPatternVolume = true };
 
-  // residual assembly flags
+  //! residual assembly flags
   enum { doAlphaVolume = true };
 
+  /// Constructor.
   TimeLocalOperator (Params const & params, unsigned int intorder_=2)
     : params_(params), intorder(intorder_), time(0.0)
   {}
@@ -34,7 +40,7 @@ public:
   //! set time for subsequent evaluation
   void setTime (double t) {time = t;}
 
-  // volume integral depending on test and ansatz functions
+  //! volume integral depending on test and ansatz functions
   template<typename EG, typename LFSU, typename X, typename LFSV, typename R>
   void alpha_volume (const EG& eg, const LFSU& lfsu, const X& x, const LFSV& lfsv, R& r) const
   {

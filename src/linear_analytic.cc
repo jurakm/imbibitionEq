@@ -50,7 +50,7 @@ class Integrand{
     double integrand(double v){
       return factor*( (g(t_ - x_*x_/(4*v*v*delta_*delta_)) - g(0.0))*std::exp(-v*v) );
     }
-    /** Integral lowe bound. */
+    /** Integral lower bound. */
     double xi() const { return xi_; }
     /** x coordinate. */
     double get_x() const { return x_; }
@@ -71,7 +71,8 @@ class Integrand{
 
 // compilation
 //  g++ -std=c++11 -g linear_analytic.cc  -o analytic /usr/local/lib/libo2scl.a -lgsl -lblas
-int main(){
+template <typename Params>
+void lin_analytic(Params params){
 //   double M = find_upper_bound(1.0E-6);
 //   std::cout << "TOL = 1E-6, M = " << M << std::endl; 
 //   M = find_upper_bound(1.0E-8);
@@ -84,50 +85,26 @@ int main(){
 //   std::cout << "TOL = 1E-14, M = " << M << std::endl; 
 //
   GetPot input_data("imbibition.input");
+  double perm = params.k;
+  double poro = params.poro;
+  double delta= params.delta;
+  double dt   = params.dt;
+  double mean_alpha = params.mean_alpha;
 
-  double perm = input_data("Permeability", -1.0);
-  double poro = input_data("Porosity", -1.0);
-  double delta= input_data("Delta", -1.0);
-  double ampl = input_data("AlphaFunction/Amplitude", -1.0);
-  int N       = input_data("Grid/NPoints", -1);
-  double qq   = input_data("Grid/Q",-1.0);
-  double L    = input_data("Grid/Length",-1.0);
-  double sigma= input_data("Grid/Sigma",-1.0);
-  double tend = input_data("Time/Final",-1.0);
-  double dt   = input_data("Time/Dt",-1.0);
-  std::string
-       str_model =  input_data("Model", "");
-  int    level =  input_data("Refinement/Level", -1);
-    Model model  =  Model::size;
-    if(str_model == std::string("constant_linear"))
-      model = Model::constant_linear;
-    else if(str_model == std::string("variable_linear"))
-      model = Model::variable_linear;
-    else if(str_model == std::string("nonlinear"))
-      model = Model::nonlinear;
-    else throw std::runtime_error("Model from input file is unknown");
+//  std::cout << "perm = " << perm << std::endl;
+//  std::cout << "poro = " << poro << std::endl;
+//  std::cout << "delta= " << delta<< std::endl;
+//  std::cout << "dt   = " << dt   << std::endl;
+//  std::cout << params.mean_alpha << std::endl;
 
-  std::cout << "perm = " << perm << std::endl;
-  std::cout << "poro = " << poro << std::endl;
-  std::cout << "delta= " << delta<< std::endl;
-  std::cout << "ampl = " << ampl << std::endl;
-  std::cout << "N    = " << N    << std::endl;
-  std::cout << "qq   = " << qq   << std::endl;
-  std::cout << "L    = " << L    << std::endl;
-  std::cout << "sigma= " << sigma<< std::endl;
-  std::cout << "tend = " << tend << std::endl;
-  std::cout << "dt   = " << dt   << std::endl;
+  bool badInput  = (perm < 0.0) or (poro<0.0) or (delta<0.0) or  (dt<0.0);
 
-  bool badInput  = (perm < 0.0) or (poro<0.0) or (delta<0.0) or (ampl<0.0) or 
-                   (N<0) or (qq<0.0) or (L<0.0) or (sigma<0.0) or (tend<0.0) or (dt<0.0);
-
-  if(badInput) throw std::runtime_error("Read wrong data from imbibition.input");
+  if(badInput) throw std::runtime_error("Error in input data.");
 
   // We need Params to calculate mean_alpha.
-  Params<void*> params(nullptr, model, ampl, perm, poro, delta, qq, sigma, L, N, level, dt, tend);
-  std::cout << params.mean_alpha << std::endl;
+//  Params<void*> params(nullptr, model, ampl, perm, poro, delta, qq, sigma, L, N, level, dt, tend);
 
-  MGF< Params<void*> >  d1(params);
+  MGF<Params>  d1(params);
   std::vector<double> x2;
   d1.double_side_interval(x2);
 
@@ -148,7 +125,7 @@ int main(){
      // Calculate the flux by given formula
      double res=0.0, err=0.0;
      inte_formula.integ_err(fprim,0.0,std::sqrt(t),res,err);
-     double scaled_delta = delta *std::sqrt(perm*params.mean_alpha/poro);
+     double scaled_delta = delta *std::sqrt(perm*mean_alpha/poro);
      res *= 4*scaled_delta/std::sqrt(M_PI);
      out_flux << t << " " << res << "\n";
  //    std::cout << "err = " << err << "\n";
@@ -178,6 +155,6 @@ int main(){
      t += dt;
   }
   out_flux.close();
-  return 0;
+  return;
 }
 
