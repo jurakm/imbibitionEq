@@ -1,0 +1,10 @@
+*.o
+a.out
+*.eps
+*.pdf
+*~
+imbibitionEq
+configure
+config.*
+*.log
+Makefile
