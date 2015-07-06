@@ -52,7 +52,7 @@ public:
 	// method
 
 	// dimensions
-	const int dim = EG::Geometry::dimension;
+	const int dim  = EG::Geometry::dimension;
 	const int dimw = EG::Geometry::dimensionworld;
 
 	// extract some types
@@ -83,14 +83,16 @@ public:
 	      }
 
 	    double alpha = coeff.k * coeff.delta * coeff.delta;
+
 	    if (coeff.model == Model::nonlinear)
 	      alpha *= coeff.alpha(u);
 	    else if(coeff.model == Model::constant_linear)
 	      alpha *= coeff.mean_alpha;
-	    else
+	    else if(coeff.model == Model::variable_linear)
 	      alpha *= coeff.alpha(coeff.bdry(time_));
+	    else{
              // if new_nonlinear alpha is not changed
-
+	    }
 	    // evaluate gradient of basis functions on reference element
 	    std::vector<Jacobian> js (lfsu.size ());
 	    lfsu.finiteElement().localBasis().evaluateJacobian(it->position (), js);

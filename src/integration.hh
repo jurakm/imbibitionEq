@@ -10,8 +10,6 @@
 
 #include <dune/geometry/quadraturerules.hh>
 
-
-
 /**
  * Routine for volume integration of a grid function
  *  DGF = DuneGridFunction

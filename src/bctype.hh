@@ -53,7 +53,7 @@ public:
       if(time == 0.0) y = 0.0; // initial condition
       else            y = params.bdry(time);
 
-      y = 0.1; //params.bdry(time);  // hack
+      y = params.bdry(0.0);  // hack
 
       for(int d = 0; d < dim; ++d){
            if(xglobal[d] < TOL or xglobal[d] > L - TOL) // this is the boundary condition
