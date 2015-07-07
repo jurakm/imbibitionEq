@@ -24,3 +24,8 @@ stamp-h1
 stamp-vc
 stamp-regenerate-config-h
 test
+src/test_functions
+doc/doxygen/latex/
+doc/doxygen/html/
+doc/doxygen/doxygen_sqlite3.db
+doc/doxygen/doxygen-tag
