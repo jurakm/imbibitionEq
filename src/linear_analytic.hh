@@ -55,41 +55,42 @@ double find_upper_bound(double TOL){
 template <typename Params>
 class Integrand{
   public:
-    Integrand(Params const & params, double x, double t) : x_(x), t_(t), delta_(0.0) {
+    Integrand(Params const & params){
     	g = params.bdry_fun();
-    	delta_ = params.delta;
+    	double delta = params.delta;
     	double perm = params.k;
     	double poro = params.poro;
     	double mean_alpha = params.mean_alpha;
-    	scaled_delta = delta_ *std::sqrt(perm*mean_alpha/poro);
+    	scaled_delta = delta *std::sqrt(perm*mean_alpha/poro);
+    	assert(scaled_delta > 0.0);
+    	factor_der = 2 * poro * scaled_delta * factor;
         check();
-       // set lower integration bound
-       xi_ = x_/(2*delta_*std::sqrt(t_));
     }
-    void set_x(double xx) { x_=xx; check();  xi_ = x_/(2*delta_*std::sqrt(t_)); }
-    void set_t(double tt) { t_=tt; check();  xi_ = x_/(2*delta_*std::sqrt(t_)); }
+    void set_x(double xx) { x_=xx; check();  xi_ = x_/scaled_delta; }
 
     /** Integrand in calculation of BL function Z(x,t). */
-    double g_shifted(double v){
-      return factor*( (g(t_ - x_*x_/(4*v*v*delta_*delta_)) - g(0.0))*std::exp(-v*v) );
+    double g_shifted(double v, double t){
+      return factor * ( (g(t - xi_*xi_/(2*v*v)) - g(0.0)) * std::exp(-v*v) );
     }
-    double dg_dt_shifted(double v, double t){ return dg_dt(t-v*v); }
+    /** Integrand in calculation of the nonwetting phase flux, scalled with right factor. */
+    double dg_dt_shifted(double v, double t){ return factor_der * dg_dt(t-v*v); }
     /** Integral lower bound. */
+    double lower_bound(double t) const { return xi_/(2*std::sqrt(t));}
     double xi() const { return xi_; }
     /** x coordinate. */
     double get_x() const { return x_; }
     /** Time t. */
-    double get_t() const { return t_; }
     double bdry(double t) const { return g(t); }
     double scaled_delta;
   private:
-    double x_, t_, delta_;
-    double xi_;
+    double x_= 0.0;
+    double xi_ = 0.0;
     const double factor = 2.0/std::sqrt(M_PI);
+    double factor_der = 0.0;
     const double h = 1.0E-7;
     void check(){
-       if(x_ < 0.0 || t_ <= 0.0 || scaled_delta <= 0.0)
-         throw std::runtime_error("Integrand: x_ < 0.0 || t_ <= 0.0 || scaled_delta <= 0.0");
+       if(x_ < 0.0  || scaled_delta <= 0.0)
+         throw std::runtime_error("Integrand: x_ < 0.0 || scaled_delta <= 0.0");
     }
     /** Boundary function taken from input file. */
     std::function<double(double)> g;
@@ -137,10 +138,10 @@ void lin_analytic(Params params){
   d1.double_side_interval(x2);
 
   double x = 0.0, t = dt;
-  Integrand<Params> a(params,x,t);
+  Integrand<Params> a(params);
 
-  o2scl::funct11 f = std::bind(std::mem_fn<double(double)>(&Integrand<Params>::g_shifted),
-		                       &a, std::placeholders::_1);
+  o2scl::funct11 f     = std::bind(std::mem_fn<double(double,double)>(&Integrand<Params>::g_shifted),
+		                           &a, std::placeholders::_1, std::cref(t));
   o2scl::funct11 fprim = std::bind(std::mem_fn<double(double,double)>(&Integrand<Params>::dg_dt_shifted),
 		                           &a, std::placeholders::_1, std::cref(t));
 
@@ -150,15 +151,11 @@ void lin_analytic(Params params){
   std::ofstream out_flux(flux);
   // Time loop
   for(int it=1; it <=Nsteps; ++it){
-     a.set_t(t);  // set time
-
      // Calculate the flux by given formula
      double res=0.0, err=0.0;
      inte_formula.integ_err(fprim,0.0,std::sqrt(t),res,err);
-     double scaled_delta = delta *std::sqrt(perm*mean_alpha/poro);
-     res *= 4*scaled_delta/std::sqrt(M_PI);
      out_flux << t << " " << res << "\n";
- //    std::cout << "err = " << err << "\n";
+    std::cout << "err = " << err << "\n";
 
 
      // Make output file name for analytic solution
@@ -172,7 +169,7 @@ void lin_analytic(Params params){
      for(int i=0; i<params.N; ++i)
      {
         a.set_x(x2[i]);
-        double lb = a.xi(), ub = std::max(6.0, lb+1), res, err;
+        double lb = a.lower_bound(t), ub = std::max(6.0, lb+1), res, err;
         // calculate Z(x,t)
         inte_formula.integ_err(f,lb,ub,res,err);
 //        std::cout << "x = " << a.get_x() << ", t = " << a.get_t()
