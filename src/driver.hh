@@ -194,74 +194,12 @@ void driver(GV const& gv, Params params)  // take a copy of params
 		////////////////////////////
 		integrator.integrate(timeMng.time, udgf, grad_udgf);
 
-//		double intOfsol = volume_integral(udgf, 3);
-//		volume_values.push_back(std::make_pair(timeMng.time, intOfsol));
-////      std::cout << "(t, int(u)) = (" << timeMng.time <<"," << std::setprecision(12) << intOfsol << ")\n";
-//		double intOverBoundary = boundary_integral(grad_udgf, 3);
-//		bdry_values.push_back(std::make_pair(timeMng.time, intOverBoundary));
-////      std::cout << "(t, int_bdry(grad u)) = (" << timeMng.time <<"," << std::setprecision(12) << intOverBoundary << ")\n";
-
 		uold = unew;
 		//     std::cout << "t = " << timeMng.time << " (dt = " << timeMng.dt << ")\n";
 	}
 
 	integrator.volume_derivative();
-//	std::vector<std::pair<double, double> > volume_values_der(
-//			volume_values.size()); // (t, d/dt int S(t))
-//
-//	double dt0 = volume_values[1].first - volume_values[0].first;
-//	double dS0 = volume_values[1].second - volume_values[0].second;
-//	volume_values_der[0] = std::make_pair(volume_values[0].first, dS0 / dt0);
-//
-//	unsigned int nn = volume_values.size() - 1;
-//	for (unsigned int i = 1; i < nn; ++i) {
-//		double dt = volume_values[i + 1].first - volume_values[i - 1].first;
-//		double dS = volume_values[i + 1].second - volume_values[i - 1].second;
-//
-//		volume_values_der[i] = std::make_pair(volume_values[i].first, dS / dt);
-//	}
-//	double dtn = volume_values[nn].first - volume_values[nn - 1].first;
-//	double dSn = volume_values[nn].second - volume_values[nn - 1].second;
-//	volume_values_der[nn] = std::make_pair(volume_values[nn].first, dSn / dtn);
-
-
 	integrator.print(filenm + "-flux.txt", params);
-//	std::ofstream out1(filenm + "-flux.txt");
-//
-//	out1
-//			<< "#     t        Phi d/dt int S   k delta^2 alpha(g(t)) int bdry grad S .n    bdry(t)\n";
-//	const double kdd = params.k * params.delta * params.delta;
-//	for (unsigned int i = 0; i < volume_values.size(); ++i) {
-//		double time = volume_values_der[i].first;
-//		if (std::abs(time - bdry_values[i].first) >= 1.0E-12)
-//			throw std::runtime_error(
-//					std::string("Time error! i = ") + std::to_string(i) + " "
-//							+ std::to_string(time) + " "
-//							+ std::to_string(bdry_values[i].first));
-//
-//		out1 << std::setw(10) << std::setprecision(4) << time
-//				<< " "  // time
-//				<< std::setw(12) << std::setprecision(6)
-//				<< params.poro * volume_values_der[i].second; //  " = d/dt int S"
-//		if (params.model == Params::nonlinear)
-//			out1 << "                 " << std::setw(12) << std::setprecision(6)
-//					<< params.alpha(params.bdry(time)) * kdd
-//							* bdry_values[i].second;
-//		// "= k delta^2 alpha(g(t)) int bdry grad S .n  "
-//		else if (params.model == Params::variable_linear)
-//			out1 << "                 " << std::setw(12) << std::setprecision(6)
-//					<< params.alpha_reg(params.bdry(time)) * kdd
-//							* bdry_values[i].second;
-//		// "= k delta^2 alpha(g(t)) int bdry grad S .n  "
-//		else if (params.model == Params::constant_linear)
-//			out1 << "                 " << std::setw(12) << std::setprecision(6)
-//					<< params.mean_alpha * kdd * bdry_values[i].second;
-//		// "= k delta^2 mean_alpha int bdry grad S .n  "
-//
-//		out1 << "             " << std::setw(12) << std::setprecision(6)
-//				<< params.bdry(time) << "\n";
-//	}
-//	out1.close();
 
 	return; // timeMng.output_count;
 }

@@ -22,9 +22,14 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <array>
+#include <utility>
+#include <string>
+
+#include <boost/tokenizer.hpp>
 
 namespace aux{
 
+/// Date and time strig that is used as a name of the simulation folder.
 std::string date_time(){
     std::time_t t = std::time(NULL);
     char mbstr[128];
@@ -32,7 +37,31 @@ std::string date_time(){
     throw std::runtime_error("Date and time string error!");
 }
 
+/// Calculate data min and max for gnuplot command file
+std::pair<double, double> min_max(std::string const & file_name, int colon){
+   std::pair<double, double> tmp={1.0E100, -1.0E100}; // min, max
 
+   std::ifstream in(file_name);
+//   std::cout << file_name << std::endl;
+   if(!in) throw std::runtime_error("Cannot open the file "+file_name);
+   std::string line;
+   while(std::getline(in, line)){
+	   if(line[0] =='#') continue;
+	   boost::char_separator<char> sep(" ");
+	   boost::tokenizer<boost::char_separator<char>> tokens(line, sep);
+//	   auto size = tokens.end() - tokens.begin();
+//	   if(colon > size) throw std::runtime_error("Too few collons in file "+file_name);
+	   auto it = tokens.begin();
+	   int i=0;
+	   for(; it != tokens.end() && i < colon; ++i) ++it;
+	   if(colon != i) throw std::runtime_error("Too few collons in file "+file_name);
+//	   std::cout << *it << std::endl;
+	   double value = std::stod(*it);
+	   if(value < tmp.first) tmp.first = value;
+	   if(value > tmp.second) tmp.second = value;
+   }
+   return tmp;
+}
 void create_dir(std::string const & dir_name) {
     std::string command = "mkdir -p "+dir_name;
     std::system(command.c_str());
@@ -75,27 +104,73 @@ void gnu_output_solution(Params const & params){
 
 template <typename Params>
 void gnu_compare_c(Params const & params){
+	int total_cnt = 0;
+	for(auto x : params.simulation) if(x) total_cnt++;
 
-    const std::string & dir = params.date_and_time;
-    std::string file = dir + "/clin_compare.gnu";
-    std::ofstream out(file);
-    out << "set xlabel \"time\"\n";
-    out << "set ylabel \"Nonwetting source\"\n";
-    out << "set key left center\n";
-    out << "#set grid\n";
-    out << "set xrange [0:1]\n";
-    out << "set yrange [0:1]\n";
-    out << "#set terminal postscript eps color solid lw 3\n";
-    out << "#set output \"clin_Q.eps\"\n";
-    out << " plot \""<< params.str_fname << "clin-flux.txt\" u 1:2 w l t \"volume integral\",\\\n";
-    out << "      \""<< params.str_fname << "clin-flux.txt\" u 1:3 w l t \"boundary integral\",\\\n";
-    out << "      \""<< "cflux-anal.txt\" u 1:2 w l t \"analytic\"\n";
-    out << "pause -1\n";
-    out.close();
-    std::cout << " To see the flux comparison in constant linear case in gnuplot format run:\n  cd "
-    		  << params.date_and_time
-    		  << "; gnuplot clin_compare.gnu\n";
+	const std::string & dir = params.date_and_time;
+	std::string file = dir + "/flux.gnu";
+	std::ofstream out(file);
+	out << "set xlabel \"time\"\n";
+	out << "set ylabel \"Nonwetting source\"\n";
+	out << "set key left center\n";
+	out << "#set grid\n";
+	out << "set xrange [0:1]\n";
+
+	std::pair<double, double> tmp={1.0E100, -1.0E100}; // min, max
+	for (unsigned int i = 0; i < params.size; ++i) {
+		if (params.simulation[i]) {
+	     	std::string name = params.str_sname  + params.simulation_names[i] + "-flux.txt";
+	     	if(i == params.analytic_const){
+	     	    auto tmp1 = min_max(name, 1);
+	     	    if(tmp1.first < tmp.first) tmp.first = tmp1.first;
+	     	    if(tmp1.second > tmp.second) tmp.second = tmp1.second;
+	     	}
+	     	else{
+	     	    auto tmp1 = min_max(name, 1);
+	     	    if(tmp1.first < tmp.first) tmp.first = tmp1.first;
+	     	    if(tmp1.second > tmp.second) tmp.second = tmp1.second;
+	     	    auto tmp2 = min_max(name, 2);
+	     	    if(tmp2.first < tmp.first) tmp.first = tmp2.first;
+	     	    if(tmp2.second > tmp.second) tmp.second = tmp2.second;
+
+	     	}
+		}
+	}
+	double dy = tmp.second - tmp.first;
+	assert(dy >= 0.0);
+	tmp.first -= 0.05*dy;
+	tmp.second += 0.05*dy;
+	out << "set yrange [" << tmp.first <<":" << tmp.second << "]\n";
+	out << "#set terminal postscript eps color solid lw 3\n";
+	out << "#set output \"clin_Q.eps\"\n";
+	int cnt = 0;
+	for (unsigned int i = 0; i < params.size; ++i) {
+     	std::string name = params.simulation_names[i];
+		if (i == 0)
+			out << "   plot ";
+		if (params.simulation[i]) {
+			cnt++;
+			if(i == params.analytic_const)
+     			out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name;
+			else{
+			   out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name + " volume int\",\\\n";
+			   out << "\"" <<  name << "-flux.txt\" u 1:3 w l t \"" << name + " bdry int";
+			}
+			if (cnt != total_cnt)
+				out << "\",\\\n";
+			else
+				out << "\"\n";
+		}
+	}
+	out << "pause -1\n";
+	out.close();
+	std::cout
+			<< " To see the flux comparison in constant linear case in gnuplot format run:\n  cd "
+			<< params.date_and_time << "; gnuplot flux.gnu\n";
 }
+
+
+
 
 } // end of namespace aux
 

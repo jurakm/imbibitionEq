@@ -119,22 +119,9 @@ void lin_analytic(Params params){
 //   M = find_upper_bound(1.0E-14);
 //   std::cout << "TOL = 1E-14, M = " << M << std::endl;
 //
-  double perm = params.k;
-  double poro = params.poro;
-  double delta= params.delta;
+  double L    = params.L;
   double dt   = params.dtout;
   int    Nsteps = params.tend / dt;
-  double mean_alpha = params.mean_alpha;
-
-//  std::cout << "perm = " << perm << std::endl;
-//  std::cout << "poro = " << poro << std::endl;
-//  std::cout << "delta= " << delta<< std::endl;
-//  std::cout << "dt   = " << dt   << std::endl;
-//  std::cout << params.mean_alpha << std::endl;
-
-  bool badInput  = (perm < 0.0) or (poro<0.0) or (delta<0.0) or  (dt<0.0);
-
-  if(badInput) throw std::runtime_error("Error in input data.");
 
   MGF<Params>  d1(params);
   std::vector<double> x2;
@@ -150,7 +137,7 @@ void lin_analytic(Params params){
 
   o2scl::inte_qag_gsl<> inte_formula;
   // Output flux -- one value for each time instant.
-  std::string flux(params.date_and_time+"/flux-"+params.simulation_names[params.model]+".txt");
+  std::string flux(params.str_sname+params.simulation_names[params.model]+"-flux.txt");
   std::ofstream out_flux(flux);
   // Time loop
   for(int it=1; it <=Nsteps; ++it){
@@ -158,7 +145,7 @@ void lin_analytic(Params params){
      double res=0.0, err=0.0;
      inte_formula.integ_err(fprim,0.0,std::sqrt(t),res,err);
      out_flux << t << " " << res << "\n";
-    std::cout << "err = " << err << "\n";
+//    std::cout << "err = " << err << "\n";
 
 
      // Make output file name for analytic solution
@@ -172,12 +159,14 @@ void lin_analytic(Params params){
      for(int i=0; i<params.N; ++i)
      {
         a.set_x(x2[i]);
-        double lb = a.lower_bound(t), ub = std::max(6.0, lb+1), res, err;
+        double lb = a.lower_bound(t), ub = std::max(6.0, lb+1), res1, res2, err;
         // calculate Z(x,t)
-        inte_formula.integ_err(f,lb,ub,res,err);
-//        std::cout << "x = " << a.get_x() << ", t = " << a.get_t()
-//                  << " : Y_0 + Z(x,t) = " << g(0.0)+res << " : err = " << err << std::endl;
-        out << a.get_x() << "   " << a.bdry(0.0)+res <<"\n";
+        inte_formula.integ_err(f,lb,ub,res1,err);
+        a.set_x(L - x2[i]);
+        lb = a.lower_bound(t);
+        ub = std::max(6.0, lb+1);
+        inte_formula.integ_err(f,lb,ub,res2,err);
+        out << a.get_x() << "   " << a.bdry(0.0)+res1+res2 <<"\n";
      }
      out.close();
      t += dt;
