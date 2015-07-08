@@ -44,13 +44,16 @@ double find_upper_bound(double TOL){
  * Class holding the integrand for calculation of the integral
  * (boundary layer function)
  *   \f[
- *   Z(\xi,t) = (2/\sqrt{\pi}) \int_{x/(2\delta\sqrt{t})} (g(t-\xi^2/(4\delta^2 v^2)) -g(0))exp(-v^2) dv.
+ *   Z(\xi,t) = (2/\sqrt{\pi}) \int_{x/(2\delta\sqrt{t})} (g(t-\xi^2/(4 v^2)) -g(0))exp(-v^2) dv.
  *   \f]
  *   where \f$\xi\f$ is  a boundary value variable, that is, at $x=0$
  *   \f[
  *   \xi = x/\overline{\delta},\quad \overline{\delta} = \delta \sqrt{\frac{k_m\overline{\alpha}_m}{\Phi_m}}.
  *   \f]
- *
+ * For non wetting phase flux \f$Q_n\f$ we have the formula
+ * \f[
+ *     Q_n = \frac{4}{\sqrt{\pi}}\overline{\delta}\Phi_m \int_0^{\sqrt{t}} g'(t-\lambda^2)\, d\lambda.
+ * \f]
  */
 template <typename Params>
 class Integrand{
@@ -70,7 +73,7 @@ class Integrand{
 
     /** Integrand in calculation of BL function Z(x,t). */
     double g_shifted(double v, double t){
-      return factor * ( (g(t - xi_*xi_/(2*v*v)) - g(0.0)) * std::exp(-v*v) );
+      return factor * ( (g(t - xi_*xi_/(4*v*v)) - g(0.0)) * std::exp(-v*v) );
     }
     /** Integrand in calculation of the nonwetting phase flux, scalled with right factor. */
     double dg_dt_shifted(double v, double t){ return factor_der * dg_dt(t-v*v); }
