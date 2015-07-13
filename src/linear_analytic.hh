@@ -58,7 +58,7 @@ double find_upper_bound(double TOL){
 template <typename Params>
 class Integrand{
   public:
-    Integrand(Params const & params){
+    Integrand(Params const & params) : params_(params){
     	g = params.bdry_fun();
     	double delta = params.delta;
     	double perm = params.k;
@@ -69,6 +69,11 @@ class Integrand{
     	factor_der = 2 * poro * scaled_delta * factor;
         check();
     }
+
+    void calculate_linear_const_flux();
+    void print_linear_const_flux(std::ostream & out);
+    void calculate_linear_const_solution(double time);
+
     void set_x(double xx) { x_=xx; check();  xi_ = x_/scaled_delta; }
 
     /** Integrand in calculation of BL function Z(x,t). */
@@ -86,22 +91,101 @@ class Integrand{
     double bdry(double t) const { return g(t); }
     double scaled_delta;
   private:
+    const Params & params_;
     double x_= 0.0;
     double xi_ = 0.0;
     const double factor = 2.0/std::sqrt(M_PI);
     double factor_der = 0.0;
     const double h = 1.0E-7;
+
+    /** Linear constant flux; pairs (t, flux(t)).  */
+    std::vector<std::pair<double,double>> lin_const_flux;
+    /** flag indicating if lin_const_fluxalculated. */
+    bool lin_cont_flux_is_calculated = false;
+    /** Linear constant solution; pairs (, Z(x)) at fixed time.  */
+    std::vector<std::pair<double,double>> lin_const_solution;
+
     void check(){
        if(x_ < 0.0  || scaled_delta <= 0.0)
          throw std::runtime_error("Integrand: x_ < 0.0 || scaled_delta <= 0.0");
     }
+
     /** Boundary function taken from input file. */
     std::function<double(double)> g;
+
     /** Derivative of the boundary value function.  */
     double dg_dt(double t){
     	return (g(t+h) - g(t-h))/(2*h);
     }
+
 };
+
+
+template <typename Params>
+void Integrand<Params>::calculate_linear_const_flux(){
+	// do nothing if already calculated
+    if(lin_cont_flux_is_calculated) return;
+
+      double dt   = params_.dtout;
+      int    Nsteps = params_.tend / dt;
+      double x = 0.0, t = dt;
+      lin_const_flux.resize(Nsteps);
+      std::fill(lin_const_flux.begin(), lin_const_flux.end(), 0.0);
+
+      o2scl::funct11 fprim = std::bind(std::mem_fn<double(double,double)>(&Integrand<Params>::dg_dt_shifted),
+    		                           this, std::placeholders::_1, std::cref(t));
+
+      o2scl::inte_qag_gsl<> inte_formula;
+      // Output flux -- one value for each time instant.
+      // Time loop
+      for(int it=1; it <=Nsteps; ++it){
+         // Calculate the flux by given formula
+         double res=0.0, err=0.0;
+         inte_formula.integ_err(fprim,0.0,std::sqrt(t),res,err);
+         lin_const_flux[it-1].first = t;
+         lin_const_flux[it-1].second = res;
+    //    std::cout << "err = " << err << "\n";
+         t += dt;
+      }
+      lin_cont_flux_is_calculated = true;
+      return;
+}
+
+template <typename Params>
+void Integrand<Params>::print_linear_const_flux(std::ostream & out){
+    if(!lin_cont_flux_is_calculated)
+    	calculate_linear_const_flux();
+    for(unsigned int i = 0; i < lin_const_flux.size(); ++i)
+    	out << lin_const_flux[i].first << "  " << lin_const_flux[i].second <<"\n";
+}
+template <typename Params>
+void Integrand<Params>::calculate_linear_const_solution(double time){
+	  double L    = params_.L;
+	  MGF<Params>  d1(params_);
+	  std::vector<double> x2;
+	  d1.double_side_interval(x2);
+	  lin_const_solution.resize(params_.N);
+	  double x = 0.0;
+
+	  o2scl::funct11 f = std::bind(std::mem_fn<double(double,double)>(&Integrand<Params>::g_shifted),
+			                       this, std::placeholders::_1, std::cref(time));
+	  o2scl::inte_qag_gsl<> inte_formula;
+
+      double lb = lower_bound(time), ub = std::max(6.0, lb+1), res1, res2, err;
+	     for(int i=0; i<params_.N; ++i)
+	     {
+	        set_x(x2[i]);
+	        // calculate Z(x,t)
+	        inte_formula.integ_err(f,lb,ub,res1,err);
+	        set_x(L - x2[i]);
+	        inte_formula.integ_err(f,lb,ub,res2,err);
+
+	        lin_const_solution[i].first = get_x();
+	        lin_const_solution[i].second = bdry(0.0)+res1+res2;
+	     }
+	  return;
+}
+
 
 
 // compilation
