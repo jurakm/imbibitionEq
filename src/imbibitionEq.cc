@@ -121,7 +121,8 @@ int main(int argc, char** argv) {
 				if(params.simulation[i])
 				{
 				   params.model = static_cast<Parameters::Model>(i);
-				   std::async(std::launch::async, driver<GV, Parameters>, gv, params);
+				   driver(gv,params);
+//				   std::async(std::launch::async, driver<GV, Parameters>, gv, params);
 				}
 			}
 				// Gnuplot control file for displaying the solution output is given only in 1D
