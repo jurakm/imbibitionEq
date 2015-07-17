@@ -18,6 +18,8 @@
 #include "config.h"     
 #endif
 
+#define O2SCL_USE_GSL_HANDLER
+
 #include <cmath>
 #include <iostream>
 #include <vector>
