@@ -16,6 +16,7 @@
 #include <stdexcept>
 
 #include <o2scl/inte_qag_gsl.h>
+#include <o2scl/inte_adapt_cern.h>
 
 #include "parameters.hh"
 #include "mgf.hh"
@@ -203,7 +204,7 @@ void Integrand<Params>::calculate_linear_const_flux(){
 
       double dt   = params_.dtout;
       int    Nsteps = params_.tend / dt;
-      double x = 0.0, t = dt;
+      double t = dt;
       lin_const_flux.resize(Nsteps);
       std::fill(lin_const_flux.begin(), lin_const_flux.end(), std::make_pair(0.0,0.0));
 
@@ -241,11 +242,11 @@ void Integrand<Params>::calculate_linear_const_solution(double time){
 	  std::vector<double> x2;
 	  d1.double_side_interval(x2);
 	  lin_const_solution.resize(params_.N);
-	  double x = 0.0;
 
 	  o2scl::funct11 f = std::bind(std::mem_fn<double(double,double)>(&Integrand<Params>::g_shifted),
 			                       this, std::placeholders::_1, std::cref(time));
-	  o2scl::inte_qag_gsl<> inte_formula;
+	  o2scl::inte_adapt_cern<> inte_formula;
+//	  o2scl::inte_qag_gsl<> inte_formula;
 
          double lb, ub, res1, res2, err;
 	     for(int i=0; i<params_.N; ++i)
