@@ -27,7 +27,7 @@ template<typename GV, typename Params>
 void driver(GV const& gv, Params params)  // take a copy of params
 {
 	// analytic solution goes to special driver
-	if(params.model == Params::analytic_const){
+	if(params.model == Params::analytic_const || params.model == Params::analytic_var){
 		lin_analytic(params);
 		return;
 	}

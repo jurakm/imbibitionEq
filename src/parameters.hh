@@ -205,7 +205,7 @@ template <typename ParameterTree>
 struct Params{
 	/// Enum constants describing different imbibition models.
 	enum Model{
-	  new_nonlinear=0, nonlinear, constant_linear, variable_linear, analytic_const, size
+	  new_nonlinear=0, nonlinear, constant_linear, variable_linear, analytic_const, analytic_var, size
 	};
  /**
   * Read all parameters from an input file. It must be called explicitly
@@ -314,6 +314,7 @@ struct Params{
           simulation_names[constant_linear] = "clin";
           simulation_names[variable_linear] = "vlin";
           simulation_names[analytic_const] = "anac";
+          simulation_names[analytic_var] = "anav";
    }
 
    Dune::ParameterTree input_data;
@@ -401,6 +402,9 @@ private:
 		             break;
 		   case 'a':
 		   case 'A': simulation[analytic_const] = true;
+		             break;
+		   case 'b':
+		   case 'B': simulation[analytic_var] = true;
 		             break;
 
 		   }
