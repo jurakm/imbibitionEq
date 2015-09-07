@@ -74,6 +74,7 @@ void driver(GV const& gv, Params params)  // take a copy of params
 
 	// <<<7>>> Interpolacija Dirichletovog rubnog te početnog uvjeta
 	typedef typename IGO::Traits::Domain U;
+//	std::cout<< abi::__cxa_demangle(	typeid(U).name(), 0,0,0) << std::endl;
 	U uold(gfs, 0.0);                                       // solution in t=t^n
 	BCExtension<GV, Real, Params> g(gv, params);
 	g.setTime(timeMng.time);
@@ -177,7 +178,6 @@ void driver(GV const& gv, Params params)  // take a copy of params
 		timeMng.set_requested_dt(noIter);
 		// graphics
 		DGF udgf(gfs, unew);
-		DGFG grad_udgf(gfs, unew);
 		if (params.vtkout and timeMng.doOutput()) {
 			Dune::SubsamplingVTKWriter<GV> vtkwriter(gv, fem_order - 1);
 			vtkwriter.addVertexData(
@@ -192,7 +192,17 @@ void driver(GV const& gv, Params params)  // take a copy of params
 			textwriter.write(filenm + std::to_string(count) + ".txt");
 		}
 		////////////////////////////
-		integrator.integrate(timeMng.time, udgf, grad_udgf);
+		if(params.model != Params::new_nonlinear){
+		   DGFG grad_udgf(gfs, unew);
+		   integrator.integrate(timeMng.time, udgf, grad_udgf);
+		}
+		else{
+			U beta_u(gfs, 0.0);
+			auto  bit = beta_u.begin();
+			for(auto it = unew.begin(); it != unew.end(); ++it, ++bit) *bit = params.beta(*it);
+		    DGFG grad_beta_udgf(gfs, beta_u);
+		    integrator.integrate(timeMng.time, udgf, grad_beta_udgf);
+ 		}
 
 		uold = unew;
 		//     std::cout << "t = " << timeMng.time << " (dt = " << timeMng.dt << ")\n";

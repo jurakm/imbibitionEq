@@ -68,8 +68,9 @@ class Integrand{
     	double mean_alpha = params.mean_alpha;
     	scaled_delta = delta *std::sqrt(perm*mean_alpha/poro);
     	assert(scaled_delta > 0.0);
+        // factor = 2.0/std::sqrt(M_PI);
     	factor_der = 2 * poro * scaled_delta * factor;
-    	factor_1 = 4 * poro * scaled_delta /params.L;
+    	factor_1 = 2 * factor * poro * scaled_delta /params.L;
         check();
 
         double tend = params.tend;

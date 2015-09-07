@@ -62,6 +62,7 @@ std::pair<double, double> min_max(std::string const & file_name, int colon){
    }
    return tmp;
 }
+
 void create_dir(std::string const & dir_name) {
     std::string command = "mkdir -p "+dir_name;
     std::system(command.c_str());
@@ -152,9 +153,11 @@ void gnu_compare_c(Params const & params){
 			cnt++;
 			if(i == params.analytic_const)
      			out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name;
+			else if(i == params.analytic_var)
+     			out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name;
 			else{
-			   out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name + " volume int\",\\\n";
-			   out << "\"" <<  name << "-flux.txt\" u 1:3 w l t \"" << name + " bdry int";
+			   out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name + " vol int\",\\\n";
+			   out << "\"" <<  name << "-flux.txt\" u 1:3 w l t \"" << name + " bdr int";
 			}
 			if (cnt != total_cnt)
 				out << "\",\\\n";
@@ -201,7 +204,6 @@ void gnu_compare_c(Params const & params){
  *  are hard coded as lambdas.
  *
  */
-template <typename ParameterTree>
 struct Params{
 	/// Enum constants describing different imbibition models.
 	enum Model{
@@ -245,18 +247,6 @@ struct Params{
     Nout = tend/dtout;
     std::string str_model =  input_data.get<std::string> ("Model");
     set_simulation(str_model);
-//    if(str_model == std::string("constant_linear"))
-//      model = Model::constant_linear;
-//    else if(str_model == std::string("variable_linear"))
-//      model = Model::variable_linear;
-//    else if(str_model == std::string("nonlinear"))
-//      model = Model::nonlinear;
-//    else if(str_model == std::string("new_nonlinear"))
-//      model = Model::new_nonlinear;
-//    else if(str_model == std::string("all"))
-//      model = Model::all;
-//    else throw std::runtime_error("Model from input file is unknown");
-
     function_index  = input_data.get<int>("BoundaryFunction");
     flux_funct_index = input_data.get<int>("FluxFunction");
 
