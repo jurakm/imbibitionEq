@@ -89,8 +89,7 @@ int main(int argc, char** argv) {
 						<< " process(es)" << std::endl;
 		}
         // Read the input file
-		using Parameters = Params<Dune::ParameterTree>;
-		Parameters params;
+		Params params;
 		params.read_input(argc, argv);
 
 		// sequential version
@@ -100,7 +99,7 @@ int main(int argc, char** argv) {
 			// Construct 1D Bakhvalov grid which is able to resolve boundary layers
 			// and use the Cartesian product of this 1D grid.
 			std::vector<double> line;
-			MGF<Parameters> mgf(params);  // mesh generating function
+			MGF<Params> mgf(params);  // mesh generating function
 			mgf.double_side_interval(line);
 			// Write down the grid points
 			std::ofstream grid_pts("grid_pts.txt");
@@ -122,9 +121,9 @@ int main(int argc, char** argv) {
 			for(unsigned int i = 0; i < params.size; ++i){
 				if(params.simulation[i])
 				{
-				   params.model = static_cast<Parameters::Model>(i);
-				   driver(gv,params);
-//				   std::async(std::launch::async, driver<GV, Parameters>, gv, params);
+				   params.model = static_cast<Params::Model>(i);
+	//			   driver(gv,params);
+    			   std::async(std::launch::async, driver<GV, Params>, gv, params);
 				}
 			}
 				// Gnuplot control file for displaying the solution output is given only in 1D

@@ -25,12 +25,12 @@ public:
 		volume_values.reserve(1024); bdry_values.reserve(1024); // for efficiency
     }
 	/// Calculates volume and boundary integrals.
-	/// It calls private methods volume_integral and boundary_integral
+	/// It calls private methods volume_integral() and boundary_integral()
 	template <typename DGF, typename DGFGrad>
 	void integrate(double time, DGF const & udgf, DGFGrad const & grad_udgf);
 	/// Calculates the time derivative of the volume integral.
 	void volume_derivative();
-	/// Print the results of integration to a file.
+	/// Prints the results of integration to a file.
     template <typename Params>
 	void print(std::string const & file_name, Params const & params);
 private:
@@ -75,10 +75,13 @@ void Integration::print(std::string const & file_name, Params const & params) {
 					<< params.alpha(params.bdry(time)) * kdd
 							* bdry_values[i].second;
 		// "= k delta^2 alpha(g(t)) int bdry grad S .n  "
+		else if (params.model == Params::new_nonlinear)
+					out1 << "                 " << std::setw(12) << std::setprecision(6)
+							<<  kdd * bdry_values[i].second;
+				// "= k delta^2 int bdry grad beta(S) .n  "
 		else if (params.model == Params::variable_linear)
 			out1 << "                 " << std::setw(12) << std::setprecision(6)
-					<< params.alpha_reg(params.bdry(time)) * kdd
-							* bdry_values[i].second;
+					<< params.alpha_reg(params.bdry(time)) * kdd * bdry_values[i].second;
 		// "= k delta^2 alpha(g(t)) int bdry grad S .n  "
 		else if (params.model == Params::constant_linear)
 			out1 << "                 " << std::setw(12) << std::setprecision(6)
@@ -134,75 +137,73 @@ void Integration::integrate(double time, DGF const & udgf, DGFGrad const & grad_
  *  @param order = order of the integration formula
  */
 template<typename DGF>
-double Integration::volume_integral(DGF const & dgf, int order)
-  {
-    double integral = 0.0;
-    auto const & gv = dgf.getGridView ();
-    const int dim = gv.dimension;
+double Integration::volume_integral(DGF const & dgf, int order) {
+	double integral = 0.0;
+	auto const & gv = dgf.getGridView();
+	const int dim = gv.dimension;
 
-    // Iterate by all elements
-    auto el_it = gv.template begin<0> ();
-    for (; el_it != gv.template end<0> (); ++el_it)
-      {
-	const auto & gtype = el_it->geometry ().type ();
-	const auto & rule = Dune::QuadratureRules<double, dim>::rule (gtype, order);
+	// Iterate by all elements
+	auto el_it = gv.template begin<0>();
+	for (; el_it != gv.template end<0>(); ++el_it) {
+		const auto & gtype = el_it->geometry().type();
+		const auto & rule = Dune::QuadratureRules<double, dim>::rule(gtype,
+				order);
 
-	double elemIntegral = 0.0;
-	for (auto ii = rule.begin (); ii != rule.end (); ++ii)
-	  {
-	    const auto & xi = ii->position ();
-	    double omegai = ii->weight ();
-	    double detJaci = el_it->geometry ().integrationElement (xi);
-	    Dune::FieldVector<double, 1> functioni = 0.0;
-	    dgf.evaluate(*el_it, xi, functioni);
-	    elemIntegral += functioni * omegai * detJaci;
-	  }
-	integral += elemIntegral;
-      }
-    return integral;
-  }
+		double elemIntegral = 0.0;
+		for (auto ii = rule.begin(); ii != rule.end(); ++ii) {
+			const auto & xi = ii->position();
+			double omegai = ii->weight();
+			double detJaci = el_it->geometry().integrationElement(xi);
+			Dune::FieldVector<double, 1> functioni = 0.0;
+			dgf.evaluate(*el_it, xi, functioni);
+			elemIntegral += functioni * omegai * detJaci;
+		}
+		integral += elemIntegral;
+	}
+	return integral;
+}
 
 template<typename DGF>
-double Integration::boundary_integral(DGF const & dgf, int order)
-  {
-    double integral = 0.0;
-    auto const & gv = dgf.getGridView ();
-    const int dim = gv.dimension;
+double Integration::boundary_integral(DGF const & dgf, int order) {
+	double integral = 0.0;
+	auto const & gv = dgf.getGridView();
+	const int dim = gv.dimension;
 
-    // By all elements
-    auto el_it = gv.template begin<0> ();
-    for (; el_it != gv.template end<0> (); ++el_it)
-      {
-	const auto el_geo = el_it->geometry();
-	auto isit_end = gv.iend(*el_it);
-	auto isit     = gv.ibegin(*el_it);
+	// By all elements
+	auto el_it = gv.template begin<0>();
+	for (; el_it != gv.template end<0>(); ++el_it) {
+		const auto el_geo = el_it->geometry();
+		auto isit_end = gv.iend(*el_it);
+		auto isit = gv.ibegin(*el_it);
 
-	   // By all sides
-	   for( ; isit != isit_end; ++isit){
-	       if(isit->boundary()){
-		   auto outerNormal = isit->centerUnitOuterNormal();
-		   const auto igeo = isit->geometry();  // intersection geometry
-		   const auto gt = igeo.type();
-		   const auto& rule = Dune::QuadratureRules<double, dim-1>::rule(gt, order);
+		// By all sides
+		for (; isit != isit_end; ++isit) {
+			if (isit->boundary()) {
+				auto outerNormal = isit->centerUnitOuterNormal();
+				const auto igeo = isit->geometry();  // intersection geometry
+				const auto gt = igeo.type();
+				const auto& rule = Dune::QuadratureRules<double, dim - 1>::rule(
+						gt, order);
 
-		   double side_integral = 0.0;
+				double side_integral = 0.0;
 
-		   auto iq = rule.begin();
-		   for (; iq != rule.end(); ++iq) {
-		       typename DGF::Traits::RangeType fval;
-		       dgf.evaluate(*el_it, el_geo.local( igeo.global(iq->position())), fval );
-		       double weight = iq->weight();
-		                      // | det (grad g) |
-		       double detjac = igeo.integrationElement(iq->position());
-		       side_integral += (fval * outerNormal) * weight * detjac;
-		   }
-		   integral += side_integral;
-		   //std::cout << "integral = " << integral << std::endl;
-	       }
-	   }// end by all sides
-      }// end by all elements
-    return integral;
-  }
+				auto iq = rule.begin();
+				for (; iq != rule.end(); ++iq) {
+					typename DGF::Traits::RangeType fval;
+					dgf.evaluate(*el_it,
+							el_geo.local(igeo.global(iq->position())), fval);
+					double weight = iq->weight();
+					// | det (grad g) |
+					double detjac = igeo.integrationElement(iq->position());
+					side_integral += (fval * outerNormal) * weight * detjac;
+				}
+				integral += side_integral;
+				//std::cout << "integral = " << integral << std::endl;
+			}
+		}  // end by all sides
+	}  // end by all elements
+	return integral;
+}
 
 
 
