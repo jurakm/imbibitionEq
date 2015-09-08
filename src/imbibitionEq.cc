@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
 			Grid grid(coords);
 
 			grid.globalRefine(params.level);
-			typedef Grid::LeafGridView GV;
+//			typedef Grid::LeafGridView GV;
 			const auto& gv = grid.leafGridView();
 
 			// launch parallel jobs if requested
