@@ -118,12 +118,14 @@ int main(int argc, char** argv) {
 			const auto& gv = grid.leafGridView();
 
 			// launch parallel jobs if requested
+			std::vector<std::future<void>> rets;
 			for(unsigned int i = 0; i < params.size; ++i){
 				if(params.simulation[i])
 				{
 				   params.model = static_cast<Params::Model>(i);
+				   std::cout << "Model " << i << " launched.\n";
 	//			   driver(gv,params);
-    			   std::async(std::launch::async, driver<GV, Params>, gv, params);
+    			   rets.push_back(std::async(std::launch::async, driver<GV, Params>, gv, params));
 				}
 			}
 				// Gnuplot control file for displaying the solution output is given only in 1D
