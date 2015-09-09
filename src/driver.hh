@@ -1,6 +1,7 @@
 #ifndef _DRIVER_HH_17294361_
 #define _DRIVER_HH_17294361_
 
+#include <chrono>
 #include <dune/pdelab/finiteelementmap/qkfem.hh>
 //#include <dune/pdelab/backend/istl/descriptors.hh>
 #include <dune/pdelab/backend/istl/bcrsmatrixbackend.hh>
@@ -24,17 +25,17 @@
  *  @param params = problem parameters
  *  */
 template<typename GV, typename Params>
-void driver(GV const& gv, Params params)  // take a copy of params
+int driver(GV const& gv, Params params)  // take a copy of params
 {
 	// analytic solution goes to special driver
 	if(params.model == Params::analytic_const || params.model == Params::analytic_var){
-		lin_analytic(params);
-		return;
+		return lin_analytic(params);
 	}
 	// <<<1>>>
 	typedef typename GV::Grid::ctype Coord;
 	typedef double Real;
 
+	auto start = std::chrono::system_clock::now();
 	TimeMng<Real> timeMng(params);
 
 	// <<<2>>> Grid function space
@@ -210,8 +211,10 @@ void driver(GV const& gv, Params params)  // take a copy of params
 
 	integrator.volume_derivative();
 	integrator.print(filenm + "-flux.txt", params);
-
-	return; // timeMng.output_count;
+	auto end = std::chrono::system_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::seconds> (end - start);
+	return duration.count();
+//	return; // timeMng.output_count;
 }
 
 #endif

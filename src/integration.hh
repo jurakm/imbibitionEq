@@ -52,6 +52,7 @@ private:
 
 template<typename Params>
 void Integration::print(std::string const & file_name, Params const & params) {
+	std::cout << "Printing " << params.simulation_names[params.model] << "\n";
 	std::ofstream out1(file_name);
 
 	if (params.model == Params::new_nonlinear)

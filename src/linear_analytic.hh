@@ -461,7 +461,8 @@ void Integrand<Params>::print_solution(std::ostream & out){
 // compilation
 //  g++ -std=c++11 -g linear_analytic.cc  -o analytic /usr/local/lib/libo2scl.a -lgsl -lblas
 template<typename Params>
-void lin_analytic(Params params) {
+int lin_analytic(Params params) {
+	auto start = std::chrono::system_clock::now();
 	Integrand<Params> a(params);
 
 	double dt = params.dtout;
@@ -496,7 +497,9 @@ void lin_analytic(Params params) {
 		out.close();
 		t += dt;
 	}
-	return;
+	auto end = std::chrono::system_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::seconds> (end - start);
+	return duration.count();
 }
 
 

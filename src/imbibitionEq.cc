@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
 			const auto& gv = grid.leafGridView();
 
 			// launch parallel jobs if requested
-			std::vector<std::future<void>> rets;
+			std::vector<std::future<int>> rets;
 			for(unsigned int i = 0; i < params.size; ++i){
 				if(params.simulation[i])
 				{
@@ -133,6 +133,17 @@ int main(int argc, char** argv) {
 			for (unsigned int i = 0; i < rets.size(); ++i) {
 				rets[i].wait();
 			}
+			// print execution times
+			unsigned int ii = -1;
+			for(unsigned int i = 0; i < params.size; ++i){
+							if(params.simulation[i])
+							{
+								ii++;
+			    			   std::cout << " Time for " << params.simulation_names[i]
+										<< " is = " << rets[ii].get() << " sec\n";
+							}
+						}
+
 
 				// Gnuplot control file for displaying the solution output is given only in 1D
 			if(dim == 1) aux::gnu_output_solution(params);
