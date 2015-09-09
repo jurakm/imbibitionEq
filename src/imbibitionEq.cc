@@ -128,9 +128,15 @@ int main(int argc, char** argv) {
     			   rets.push_back(std::async(std::launch::async, driver<GV, Params>, gv, params));
 				}
 			}
+			// wait for all threads to complete before calling gnu_compare_c().
+			std::cout << "Waiting...\n";
+			for (unsigned int i = 0; i < rets.size(); ++i) {
+				rets[i].wait();
+			}
+
 				// Gnuplot control file for displaying the solution output is given only in 1D
 			if(dim == 1) aux::gnu_output_solution(params);
-			if(params.simulation[params.analytic_const]) aux::gnu_compare_c(params);
+			aux::gnu_compare_c(params);
 		}
 
 		Dune::dinfo.detach();

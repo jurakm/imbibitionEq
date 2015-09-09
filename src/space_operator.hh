@@ -103,7 +103,7 @@ public:
 			for (size_type i = 0; i < lfsu.size(); i++)
 				jac.mv(js[i][0], gradphi[i]);
 
-			// compute gradient of u or grad beta(u)
+			// compute gradient of u or gradient of beta(u)
 			Gradient gradu(0.0);
 			if (coeff.model == Params::new_nonlinear) {
 				for (size_type i = 0; i < lfsu.size(); ++i)
@@ -113,8 +113,7 @@ public:
 					gradu.axpy(x(lfsu, i), gradphi[i]);
 			}
 			// integrate grad u * grad phi_i
-			RF factor = it->weight()
-					* eg.geometry().integrationElement(it->position());
+			RF factor = it->weight() * eg.geometry().integrationElement(it->position());
 			for (size_type i = 0; i < lfsu.size(); ++i)
 				r.accumulate(lfsu, i, alpha * (gradu * gradphi[i]) * factor);
 		}

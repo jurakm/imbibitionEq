@@ -68,6 +68,7 @@ void create_dir(std::string const & dir_name) {
     std::system(command.c_str());
 }
 
+/// Write gnuplot command file to see an animation of the solution(s).
 template <typename Params>
 void gnu_output_solution(Params const & params){
 	if(!params.txtout) return;
@@ -103,6 +104,8 @@ void gnu_output_solution(Params const & params){
     		  << "; gnuplot solution.gnu\n";
 }
 
+
+/// Write gnuplot command file to see the fluxes.
 template <typename Params>
 void gnu_compare_c(Params const & params){
 	int total_cnt = 0;
@@ -296,7 +299,7 @@ struct Params{
           ptfun.push_back([](double t) { return -((0.9-0.1)/M_PI)*std::atan((2*t-1)/0.1)+(0.9+0.1)/2; });
           ptfun.push_back([](double t) { return 0.35 - 0.2* std::sin(2*M_PI*t); });
           ptfun.push_back([](double t) { return std::max(std::min(0.5 + 0.51* std::sin(2*M_PI*t), 1.0), 0.0); });
-          ptfun.push_back([](double t) { return 1.0; });
+          ptfun.push_back([](double t) { return 0.05 + std::min(t,0.9); });
 
           for(unsigned int i=0; i < size; ++i) simulation[i] = false;
           simulation_names[new_nonlinear] = "n_nlin";
