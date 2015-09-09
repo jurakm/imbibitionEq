@@ -54,8 +54,13 @@ template<typename Params>
 void Integration::print(std::string const & file_name, Params const & params) {
 	std::ofstream out1(file_name);
 
-	out1 << "#     t        Phi d/dt int S   k delta^2 alpha(g(t)) int bdry grad S .n    bdry(t)\n";
+	if (params.model == Params::new_nonlinear)
+	   out1 << "#     t        Phi d/dt int S   k delta^2 int bdry grad beta(S) . n    bdry(t)\n";
+	else
+	   out1 << "#     t        Phi d/dt int S   k delta^2 alpha(g(t)) int bdry grad S . n    bdry(t)\n";
+
 	const double kdd = params.k * params.delta * params.delta;
+
 //	std::cout << "kdd = " << kdd << std::endl;
 //	std::cout << "params.mean_alpha = " << params.mean_alpha << std::endl;
 	for (unsigned int i = 0; i < volume_values.size(); ++i) {
@@ -182,16 +187,14 @@ double Integration::boundary_integral(DGF const & dgf, int order) {
 				auto outerNormal = isit->centerUnitOuterNormal();
 				const auto igeo = isit->geometry();  // intersection geometry
 				const auto gt = igeo.type();
-				const auto& rule = Dune::QuadratureRules<double, dim - 1>::rule(
-						gt, order);
+				const auto& rule = Dune::QuadratureRules<double, dim-1>::rule(gt, order);
 
 				double side_integral = 0.0;
 
 				auto iq = rule.begin();
 				for (; iq != rule.end(); ++iq) {
 					typename DGF::Traits::RangeType fval;
-					dgf.evaluate(*el_it,
-							el_geo.local(igeo.global(iq->position())), fval);
+					dgf.evaluate(*el_it, el_geo.local(igeo.global(iq->position())), fval);
 					double weight = iq->weight();
 					// | det (grad g) |
 					double detjac = igeo.integrationElement(iq->position());
