@@ -69,7 +69,7 @@ class Integrand{
     	scaled_delta = delta *std::sqrt(perm*mean_alpha/poro);
     	assert(scaled_delta > 0.0);
         // factor = 2.0/std::sqrt(M_PI);
-    	factor_der = 2 * poro * scaled_delta * factor;
+    	factor_der = 2 * poro * scaled_delta * factor;   // factor = 2.0/std::sqrt(M_PI)
     	factor_1 = 2 * factor * poro * scaled_delta /params.L;
         check();
 
@@ -159,7 +159,7 @@ class Integrand{
     std::vector<std::pair<double,double>> lin_const_solution;
     /** Linear variable solution; pairs (x, u(x,t)) at fixed time t.  */
     std::vector<std::pair<double,double>> lin_var_solution;
-    /** Las index of calculated time in new_time_field. */
+    /** Last index of calculated time in new_time_field. */
     unsigned int last_time_index_ = 0;
     const unsigned int default_table_size_ = 10000;
     /** Pairs (t, tau(t)) where tau(t) = int_0^t alpha(g(s))ds. time_ holds t. */
@@ -361,7 +361,7 @@ void Integrand<Params>::calculate_linear_var_flux(){
 
 template <typename Params>
 void Integrand<Params>::print_flux(std::ostream & out){
-	// Note. Flux must be calculated firs.
+	// Note. Flux must be calculated first.
     for(unsigned int i = 0; i < lin_flux.size(); ++i)
     	out << lin_flux[i].first << "  " << lin_flux[i].second <<"\n";
 }

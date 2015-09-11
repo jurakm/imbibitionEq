@@ -187,7 +187,7 @@ double Table<FunctionClass>::interpolate(double sw) const
 
   double int_part = 0.0;
   const double fraction = std::modf(sw/h, &int_part);
-  const unsigned int i = static_cast<int>(int_part);
+  const unsigned int i = static_cast<unsigned int>(int_part);
 
   const double val = fraction * beta_values[i+1] + (1-fraction) * beta_values[i];
   return val;

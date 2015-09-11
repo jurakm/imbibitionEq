@@ -299,7 +299,7 @@ struct Params{
           ptfun.push_back([](double t) { return -((0.9-0.1)/M_PI)*std::atan((2*t-1)/0.1)+(0.9+0.1)/2; });
           ptfun.push_back([](double t) { return 0.35 - 0.2* std::sin(2*M_PI*t); });
           ptfun.push_back([](double t) { return std::max(std::min(0.5 + 0.51* std::sin(2*M_PI*t), 1.0), 0.0); });
-          ptfun.push_back([](double t) { return 0.05 + std::min(t,0.9); });
+          ptfun.push_back([](double t) { return 0.3 + std::min(t,0.6); });
 
           for(unsigned int i=0; i < size; ++i) simulation[i] = false;
           simulation_names[new_nonlinear] = "n_nlin";

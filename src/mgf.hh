@@ -35,7 +35,7 @@ class MGF{
         derivative_(0.0), iter_(0), N_(0)
       {
            L_     = params.L;
-           eps_   = params.delta *params.delta;
+           eps_   = params.delta; // *params.delta;
            q_     = params.q;
            sigma_ = params.sigma;
            N_     = params.N;
