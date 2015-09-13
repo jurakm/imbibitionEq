@@ -67,6 +67,7 @@
 #include "driver.hh"
 #include "mgf.hh"
 #include "linear_analytic.hh"
+#include "imbibitionFunctions.hh"
 #include <future>
 
 //===================================================================
@@ -135,19 +136,21 @@ int main(int argc, char** argv) {
 			}
 			// print execution times
 			unsigned int ii = -1;
-			for(unsigned int i = 0; i < params.size; ++i){
-							if(params.simulation[i])
-							{
-								ii++;
-			    			   std::cout << " Time for " << params.simulation_names[i]
-										<< " is = " << rets[ii].get() << " sec\n";
-							}
-						}
+			for (unsigned int i = 0; i < params.size; ++i) {
+				if (params.simulation[i]) {
+					ii++;
+					std::cout << " Time for " << params.simulation_names[i]
+							<< " is = " << rets[ii].get() << " sec\n";
+				}
+			}
 
 
-				// Gnuplot control file for displaying the solution output is given only in 1D
+			// Gnuplot control file for displaying the solution output is given only in 1D
 			if(dim == 1) aux::gnu_output_solution(params);
+			// Write gnuplot control file for displaying the fluxes.
 			aux::gnu_compare_c(params);
+			// plot alpha and beta functions for gnuplot
+			aux::plot_functions(params);
 		}
 
 		Dune::dinfo.detach();

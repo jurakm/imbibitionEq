@@ -13,6 +13,7 @@
 #include <cmath>
 #include <fstream>
 
+
 /// @brief Class that calculates integral of a given function in a form of a table,
 ///         and offers function that interpolates the table. Function that is to integrated
 ///         is given as member function of the class given as the template parameter.
@@ -56,12 +57,20 @@ private:
   // Make a table of values
 };
 
+// Virtual base for the functions alpha and beta.
+class ImbibitionFunctions{
+public:
+	virtual double alpha(double swe) const = 0;
+	virtual double beta (double swe) const = 0;
+	virtual unsigned int NofPts() const = 0;
+	virtual ~ImbibitionFunctions() {}
+};
 /// \brief Class giving nonlinear diffusion coefficient and its integral.
 ///
 /// Purely artificial \f$ \alpha(S)= aS(1-S) \f$ function with one parameter.
 /// Function \f$\beta(S) = \int_0^S \alpha(u) du\f$ is given in a form of a table
 /// formed by numerical integration (composite Simpson's rule).
-class ArtifImbibitionFunctions{
+class ArtifImbibitionFunctions : public ImbibitionFunctions{
 public:
 	/// Default constructor. init() must be called before any use.
   ArtifImbibitionFunctions() : a(0.0){}
@@ -96,7 +105,7 @@ private:
 /// formed by numerical integration (composite Simpson's rule).
 /// @tparam = Two-phase flow function class.
 template <typename TwoPhaseFunctions>
-class RealImbibitionFunctions{
+class RealImbibitionFunctions : public ImbibitionFunctions{
 public:
   using Params = typename TwoPhaseFunctions::Params;
   /// Default constructor. init() must be called before the use.
@@ -193,25 +202,6 @@ double Table<FunctionClass>::interpolate(double sw) const
   return val;
 }
 
-// ----------------------------  imbibitionFunctions --------------------
 
-
-template <typename ImbibitionFunctions>
-void plot(std::string const & file_name, ImbibitionFunctions const & obj, unsigned int n)
-{
-    if(n == 0) throw std::runtime_error("n=0");
-    double hh = 1.0/n;
-
-    std::ofstream file (file_name);
-    file << "    x         alpha(x)            beta(x)\n";
-    for (unsigned int i = 0; i <= n; ++i)
-      {
-	const double xi = i*hh;
-	file << std::setw(10) << std::setprecision(8) << xi << "   "
-	     << std::setw(16) << std::setprecision(12) << obj.alpha(xi)  << "   "
-	     << std::setw(16) << std::setprecision(12) << obj.beta(xi) << "\n";
-      }
-    file.close ();
-}
 
 #endif

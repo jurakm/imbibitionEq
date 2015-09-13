@@ -243,7 +243,7 @@ double Integrand<Params>::tau(double t) const{
 
 template <typename Params>
 void Integrand<Params>::integrate_alpha_bdry(double t){
-	unsigned int old_last_index_time = last_time_index_;
+//	unsigned int old_last_index_time = last_time_index_;
 	double t_inf =  time_[last_time_index_];
 	double integr=  tau_time_[last_time_index_];
 	if(t_inf >= t){
@@ -288,7 +288,7 @@ template <typename Params>
 void Integrand<Params>::calculate_linear_const_flux(){
       double dt   = params_.dtout;
       int    Nsteps = params_.tend / dt;
-      double x = 0.0, t = dt;
+      double t = dt;
       lin_flux.resize(Nsteps+1);
       std::fill(lin_flux.begin(), lin_flux.end(), std::make_pair(0.0,0.0));
 
@@ -317,7 +317,7 @@ template <typename Params>
 void Integrand<Params>::calculate_linear_var_flux(){
       double dt   = params_.dtout;
       int    Nsteps = params_.tend / dt;
-      double x = 0.0, t = 0.0;
+      double  t = 0.0;
       double tau_t = 0.0;
 	  const double h = 1E-6; // parameter for num diff
       lin_flux.resize(Nsteps+1);

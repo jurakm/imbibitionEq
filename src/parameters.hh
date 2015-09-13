@@ -27,6 +27,9 @@
 
 #include <boost/tokenizer.hpp>
 
+#include <dune/common/parametertree.hh>
+#include <dune/common/parametertreeparser.hh>
+
 namespace aux{
 
 /// Date and time strig that is used as a name of the simulation folder.
@@ -175,7 +178,27 @@ void gnu_compare_c(Params const & params){
 			<< params.date_and_time << "; gnuplot flux.gnu\n";
 }
 
+template <typename Params>
+void plot_functions(Params const & params, unsigned int n = 0)
+{
+	const ImbibitionFunctions * const  pfun = params.imbib_fun();
+    if(n == 0) n = pfun->NofPts();
+    double hh = 1.0/n;
 
+    const std::string & dir = params.date_and_time;
+    std::string file_name = dir + "/functions.txt";
+
+    std::ofstream file (file_name);
+    file << "    x         alpha(x)            beta(x)\n";
+    for (unsigned int i = 0; i <= n; ++i)
+      {
+	const double xi = i*hh;
+	file << std::setw(10) << std::setprecision(8) << xi << "   "
+	     << std::setw(16) << std::setprecision(12) << pfun->alpha(xi)  << "   "
+	     << std::setw(16) << std::setprecision(12) << pfun->beta(xi) << "\n";
+      }
+    file.close ();
+}
 
 
 } // end of namespace aux
@@ -339,6 +362,10 @@ struct Params{
    /// return boundary function (needed for analytic solution)
    std::function<double(double)> bdry_fun() const {return ptfun[function_index]; }
 
+   const ImbibitionFunctions * const imbib_fun() const {
+     if(flux_funct_index == 0) return &aImbFun;
+     return &vgImbFun;
+   }
    // Constants
    double a = 0.0;       ///< amplitude of the artificial alpha function
    double acom = 0.0;    ///< alpha cut off multiplier
