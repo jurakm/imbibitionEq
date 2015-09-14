@@ -178,26 +178,52 @@ void gnu_compare_c(Params const & params){
 			<< params.date_and_time << "; gnuplot flux.gnu\n";
 }
 
+/// Plot alpha, beta and the boundary transfer function.
 template <typename Params>
 void plot_functions(Params const & params, unsigned int n = 0)
 {
 	const ImbibitionFunctions * const  pfun = params.imbib_fun();
     if(n == 0) n = pfun->NofPts();
+    // functions are definde on [0,1]
     double hh = 1.0/n;
 
     const std::string & dir = params.date_and_time;
     std::string file_name = dir + "/functions.txt";
 
     std::ofstream file (file_name);
-    file << "    x         alpha(x)            beta(x)\n";
+    file << "    S_w        alpha(S_w)            beta(S_w)         bdry_trans(S_w)\n";
     for (unsigned int i = 0; i <= n; ++i)
       {
 	const double xi = i*hh;
 	file << std::setw(10) << std::setprecision(8) << xi << "   "
-	     << std::setw(16) << std::setprecision(12) << pfun->alpha(xi)  << "   "
-	     << std::setw(16) << std::setprecision(12) << pfun->beta(xi) << "\n";
+	     << std::setw(16) << std::setprecision(12) << params.alpha(xi)  << "   "
+	     << std::setw(16) << std::setprecision(12) << pfun->beta(xi)   << "   "
+	     << std::setw(16) << std::setprecision(12) << params.bdry_transfer(xi)  << "\n";
       }
     file.close ();
+
+
+    std::string file_name_gnu = dir + "/functions.gnu";
+    std::ofstream out(file_name_gnu);
+    out << "set xlabel \"S_w\"\n";
+    out << "set key left top\n";
+    out << "#set grid\n";
+    out << "set xrange [0:1]\n";
+
+    auto tmp2 = min_max(file_name, 2);
+    auto tmp3 = min_max(file_name, 3);
+    auto tmp4 = min_max(file_name, 4);
+    double max = std::max(tmp2.second, tmp3.second);
+    max = std::max(max,tmp4.second);
+
+    out << "set yrange [0.0:" << max << "]\n";
+    out << "#set terminal postscript eps color solid lw 3\n";
+    out << "#set output \"functions.eps\"\n";
+    out << "   plot " << file_name << " u 1:2 w l t \"alpha\",\\\n";
+    out << "        " << file_name << " u 1:3 w l t \"beta\",\\\n";
+    out << "        " << file_name << " u 1:4 w l t \"transfer\"\n";
+
+    out.close();
 }
 
 
@@ -290,15 +316,19 @@ struct Params{
     }
     else
     {
-       double vgAlpha  =  input_data.get<double>      ("VanGenuchten.Alpha");
-       double vgN      =  input_data.get<double>      ("VanGenuchten.N");
-       Dumux::VanGenuchtenParams vgParams(vgAlpha, vgN);
+       double vgAlphaMat  =  input_data.get<double>      ("Matrix.VanGenuchten.Alpha");
+       double vgNMat   =  input_data.get<double>      ("Matrix.VanGenuchten.N");
+       Dumux::VanGenuchtenParams vgParamsMatrix(vgAlphaMat, vgNMat);
+       double vgAlphaFr  =  input_data.get<double>      ("Fracture.VanGenuchten.Alpha");
+       double vgNFr      =  input_data.get<double>      ("Fracture.VanGenuchten.N");
+       Dumux::VanGenuchtenParams vgParamsFracture(vgAlphaFr, vgNFr);
 
        double muw =  input_data.get<double>("Fluids.WettingViscosity");
        double mun =  input_data.get<double>("Fluids.NonWettingViscosity");
        // this object will be used
-       vgImbFun.init(vgParams, muw, mun);
-       mean_alpha = vgImbFun.beta(1.0);
+       vgImbFunMatrix.init(vgParamsMatrix, muw, mun);
+       mean_alpha = vgImbFunMatrix.beta(1.0);
+       vgImbFunFracture.init(vgParamsFracture, muw, mun);
     }
     amin = mean_alpha * acom;
     // All simulation output goes to the folder named after current date and time.
@@ -340,31 +370,38 @@ struct Params{
    double alpha(double u) const
    {
      if(flux_funct_index == 0) return aImbFun.alpha(u);
-     return vgImbFun.alpha(u);
+     return vgImbFunMatrix.alpha(u);
    }
 
    ///  \f$\beta(S) = \int_0^S \alpha(u) du\f$ .
    double beta(double u) const
    {
      if(flux_funct_index == 0) return aImbFun.beta(u);
-     return vgImbFun.beta(u);
+     return vgImbFunMatrix.beta(u);
    }
 
    /// \f$\alpha(S)\f$  nonlinear diffusivity coefficient that is cut-off
    /// in order to remain strictly positive. Probably not needed.
-   double alpha_reg(double u) const {
-     double a = alpha(u);
-     if(a < amin) a = amin;
-     return a;
+//   double alpha_reg(double u) const {
+//     double a = alpha(u);
+//     if(a < amin) a = amin;
+//     return a;
+//   }
+   double bdry_transfer(double s) const{
+	   if(flux_funct_index == 0) return s;
+	   return vgImbFunMatrix.sw( vgImbFunFracture.pc( s ) );
    }
    /// Saturation boundary condition on the matrix block boundary
-   double bdry(double t) const { return ptfun[function_index](t);  }
+   double bdry(double t) const {
+	   if(flux_funct_index == 0) return ptfun[function_index](t);
+	   return bdry_transfer( ptfun[function_index](t) );
+   }
    /// return boundary function (needed for analytic solution)
    std::function<double(double)> bdry_fun() const {return ptfun[function_index]; }
 
    const ImbibitionFunctions * const imbib_fun() const {
      if(flux_funct_index == 0) return &aImbFun;
-     return &vgImbFun;
+     return &vgImbFunMatrix;
    }
    // Constants
    double a = 0.0;       ///< amplitude of the artificial alpha function
@@ -403,7 +440,8 @@ private:
    double amin = 0.0; //alpha(0.5)/20;
    // implementations of alpha-functions
    ArtifImbibitionFunctions aImbFun;
-   RealImbibitionFunctions<Dumux::VanGenuchten> vgImbFun;
+   RealImbibitionFunctions<Dumux::VanGenuchten> vgImbFunMatrix;
+   RealImbibitionFunctions<Dumux::VanGenuchten> vgImbFunFracture;
 
    void set_simulation(std::string const & sim){
 	   for(auto x : sim){

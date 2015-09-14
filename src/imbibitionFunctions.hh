@@ -62,7 +62,10 @@ class ImbibitionFunctions{
 public:
 	virtual double alpha(double swe) const = 0;
 	virtual double beta (double swe) const = 0;
+	virtual double pc   (double swe) const = 0;
+	virtual double sw   (double pc ) const = 0;
 	virtual unsigned int NofPts() const = 0;
+
 	virtual ~ImbibitionFunctions() {}
 };
 /// \brief Class giving nonlinear diffusion coefficient and its integral.
@@ -88,6 +91,10 @@ public:
   double alpha(double swe) const { return a*swe*(1-swe); }
   ///  \f$\beta(S) = \int_0^S \alpha(u) du.\f$
   double beta(double swe) const { return table.interpolate(swe); }
+  /// dummy capillary pressure
+  double pc   (double swe) const {return swe; }
+  /// dummy inverse of the capillary pressure
+  double sw   (double pc ) const {return pc; }
   /// Number of points in the table table for \f$\beta(S) = \int_0^S \alpha(u) du.\f$
   unsigned int NofPts() const { return table.NofPts(); }
 private:
@@ -144,6 +151,10 @@ public:
   }
   ///  \f$\beta(S) = \int_0^S \alpha(u) du.\f$
   double beta(double swe) const { return table.interpolate(swe); }
+  /// the capillary pressure
+  double pc   (double swe) const {return TwoPhaseFunctions::pc(params, swe); }
+  /// inverse of the capillary pressure
+  double sw   (double pc ) const {return TwoPhaseFunctions::sw(params, pc); }
   /// Number of points in the table table for \f$\beta(S) = \int_0^S \alpha(u) du.\f$
   unsigned int NofPts() const { return table.NofPts(); }
 private:

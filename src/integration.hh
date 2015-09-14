@@ -87,7 +87,7 @@ void Integration::print(std::string const & file_name, Params const & params) {
 				// "= k delta^2 int bdry grad beta(S) .n  "
 		else if (params.model == Params::variable_linear)
 			out1 << "                 " << std::setw(12) << std::setprecision(6)
-					<< params.alpha_reg(params.bdry(time)) * kdd * bdry_values[i].second;
+					<< params.alpha(params.bdry(time)) * kdd * bdry_values[i].second;
 		// "= k delta^2 alpha(g(t)) int bdry grad S .n  "
 		else if (params.model == Params::constant_linear)
 			out1 << "                 " << std::setw(12) << std::setprecision(6)
