@@ -149,8 +149,6 @@ int main(int argc, char** argv) {
 			if(dim == 1) aux::gnu_output_solution(params);
 			// Write gnuplot control file for displaying the fluxes.
 			aux::gnu_compare_c(params);
-			// plot alpha and beta functions for gnuplot
-			aux::plot_functions(params);
 		}
 
 		Dune::dinfo.detach();

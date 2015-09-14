@@ -14,12 +14,12 @@ BoundaryFunction = 5 # 0 = 0.35 + 0.2 * sin(2*PI*t)
                      # 2 = -((0.9-0.1)/PI)*atan((2*t-1)/0.1)+(0.9+0.1)/2
                      # 3 = 0.35 - 0.2* std::sin(2*M_PI*t)
                      # 4 = 0.5 + 0.49* std::sin(2*M_PI*t)
-                     # 5 = 0.05 + min(t,0.95)
+                     # 5 = 0.05 + min(t,0.9)
 FluxFunction = 1   # 0 = artificial 
                    # 1 = van Genuchten
 [Grid]
 Length = 1.0  # Length of the side of the grid
-NPoints  = 10000 #  No of points in each coordinate direction 
+NPoints  = 20000 #  No of points in each coordinate direction 
 Q = 0.3  # portion of the mesh points used to resolve BL
 Sigma = 1 # Grading of the mesh inside the layer (?)
 
@@ -54,11 +54,9 @@ TXT = 1   # 0=false, 1=true
 WettingViscosity =  1         # cP
 NonWettingViscosity = 0.8     # cP
 
-[Matrix]
-[VanGenuchten]
+[Matrix-VanGenuchten]
 Alpha = 0.5           # 1/bar 
 N    = 2.0
-[Fracture]
-[VanGenuchten]
+[Fracture-VanGenuchten]
 Alpha = 2.0           # 1/bar 
 N    = 2.5

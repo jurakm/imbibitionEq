@@ -61,7 +61,7 @@ template <typename Params>
 class Integrand{
   public:
     Integrand(Params const & params) : params_(params){
-    	g = params.bdry_fun();
+    	//g = params.bdry_fun();
     	double delta = params.delta;
     	double perm = params.k;
     	double poro = params.poro;
@@ -82,11 +82,11 @@ class Integrand{
         g_tau_time_.resize(default_table_size_);
         time_(0) = 0.0;
         tau_time_(0) = 0.0;
-        g_tau_time_(0) = g(0.0);
+        g_tau_time_(0) = bdry(0.0);
         integrate_alpha_bdry(tend);
     }
     /** Calculate the flux in the case of constant linearisation. The result is
-     *  given on an equdistant time mesh and is stored in lin_flux variable.
+     *  given on an equidistant time mesh and is stored in lin_flux variable.
      */
     void calculate_linear_const_flux();
     /** Print the flux calculated in calculate_linear_const_flux() on a given stream.
@@ -110,7 +110,7 @@ class Integrand{
     void print_tau(std::ostream & out);
     /** tau( t ). */
     double tau(double t) const;
-    /** g( t(tau) ), where t() is the incerse function of tau. */
+    /** g( t(tau) ), where t() is the increasing function of tau. */
     double bdry_comp_t(double tau) const;
   private:
     const Params & params_;
@@ -119,7 +119,7 @@ class Integrand{
 
     /** Integrand in calculation of BL function Z(x,t). */
     double g_shifted(double v, double t) const {
-      return factor * ( (g(t - xi_*xi_/(4*v*v)) - g(0.0)) * std::exp(-v*v) );
+      return factor * ( (bdry(t - xi_*xi_/(4*v*v)) - bdry(0.0)) * std::exp(-v*v) );
     }
     /**  */
     double g_t_shifted(double v, double t) const {
@@ -133,11 +133,13 @@ class Integrand{
     /** Integral lower bound. */
     double lower_bound(double t) const { return xi_/(2*std::sqrt(t));}
     /** Boundary condition at the time t. */
-    double bdry(double t) const { return g(t); }
+    double bdry(double t) const { return params_.bdry(t); }
     /** Alpha-function. */
-    double alpha(double S) const { return params_.alpha(S)/params_.mean_alpha; }
+    double alpha(double S) const { return params_.alpha(S); }
+//    double alpha(double S) const { return params_.alpha(S)/params_.mean_alpha; }
     /** Composition alpha( g(t) ). */
-    double a_g(double t) const { return params_.alpha( g(t) )/params_.mean_alpha; }
+    double a_g(double t) const { return params_.alpha( bdry(t) ); }
+//    double a_g(double t) const { return params_.alpha( bdry(t) )/params_.mean_alpha; }
     /** Calculate new entry in  new_time_field by calculating
      * \f[ \int_{t_0}^t \alpha_m( g(s)) ds,\f]
      * where \f$t_0\f$ is given by last_time_index_.
@@ -175,11 +177,11 @@ class Integrand{
     }
 
     /** Boundary function taken from input file. */
-    std::function<double(double)> g;
+  //  std::function<double(double)> g;
 
     /** Derivative of the boundary value function.  */
     double dg_dt(double t){
-    	return (g(t+h) - g(t-h))/(2*h);
+    	return (bdry(t+h) - bdry(t-h))/(2*h);
     }
 
 };
@@ -226,7 +228,7 @@ double Integrand<Params>::tau(double t) const{
 	if(index == 0) throw std::logic_error("Internal error 542.");
 	if(index > last_time_index_){
 		// There is no bigger element, return largest value.
-		// This can hapen only on the last element.
+		// This can happen only on the last element.
 		assert(index == last_time_index_ + 1);
 		return tau_time_[index-1];
 	}
@@ -271,7 +273,7 @@ void Integrand<Params>::integrate_alpha_bdry(double t){
      	}
       	time_[last_time_index_] = time;
       	tau_time_[last_time_index_] = integr + res;
-      	g_tau_time_[last_time_index_] = g( time );
+      	g_tau_time_[last_time_index_] = bdry( time );
 	}
 }
 

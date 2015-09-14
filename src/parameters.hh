@@ -41,7 +41,8 @@ std::string date_time(){
 }
 
 /// Calculate data min and max for gnuplot command file
-std::pair<double, double> min_max(std::string const & file_name, int colon){
+std::pair<double, double> min_max(std::string const & file_name, int colon)
+		{
    std::pair<double, double> tmp={1.0E100, -1.0E100}; // min, max
 
    std::ifstream in(file_name);
@@ -53,11 +54,11 @@ std::pair<double, double> min_max(std::string const & file_name, int colon){
 	   boost::char_separator<char> sep(" ");
 	   boost::tokenizer<boost::char_separator<char>> tokens(line, sep);
 //	   auto size = tokens.end() - tokens.begin();
-//	   if(colon > size) throw std::runtime_error("Too few collons in file "+file_name);
+//	   if(colon > size) throw std::runtime_error("Too few colons in file "+file_name);
 	   auto it = tokens.begin();
 	   int i=0;
 	   for(; it != tokens.end() && i < colon; ++i) ++it;
-	   if(colon != i) throw std::runtime_error("Too few collons in file "+file_name);
+	   if(colon != i) throw std::runtime_error("Too few colons in file "+file_name);
 //	   std::cout << *it << std::endl;
 	   double value = std::stod(*it);
 	   if(value < tmp.first) tmp.first = value;
@@ -184,24 +185,39 @@ void plot_functions(Params const & params, unsigned int n = 0)
 {
 	const ImbibitionFunctions * const  pfun = params.imbib_fun();
     if(n == 0) n = pfun->NofPts();
-    // functions are definde on [0,1]
+    // functions are defined on [0,1]
     double hh = 1.0/n;
 
     const std::string & dir = params.date_and_time;
-    std::string file_name = dir + "/functions.txt";
+    std::string file_name = "functions.txt";
+    std::string full_file_name = dir+"/functions.txt";
 
-    std::ofstream file (file_name);
-    file << "    S_w        alpha(S_w)            beta(S_w)         bdry_trans(S_w)\n";
+    std::ofstream file (full_file_name);
+    file << "#    S_w        alpha(S_w)        beta(S_w)     bdry_trans(S_w)\n";
     for (unsigned int i = 0; i <= n; ++i)
       {
-	const double xi = i*hh;
+    	const double xi = i*hh;
 	file << std::setw(10) << std::setprecision(8) << xi << "   "
 	     << std::setw(16) << std::setprecision(12) << params.alpha(xi)  << "   "
-	     << std::setw(16) << std::setprecision(12) << pfun->beta(xi)   << "   "
+	     << std::setw(16) << std::setprecision(12) << params.beta(xi)   << "   "
 	     << std::setw(16) << std::setprecision(12) << params.bdry_transfer(xi)  << "\n";
       }
     file.close ();
 
+    std::string pc_file_name = "pc.txt";
+    std::string full_pc_file_name = dir+"/pc.txt";
+
+    std::ofstream pc_file (full_pc_file_name);
+    pc_file << "#    S_w         pc_matrix(S_w)        pc_fracture(S_w)\n";
+    for (unsigned int i = 0; i <= n; ++i)
+    {
+       	const double xi = i*hh;
+       	if(xi < 0.1) continue;
+   	    pc_file << std::setw(10) << std::setprecision(8) << xi << "   "
+   	     << std::setw(16) << std::setprecision(12) << params.pc_matrix(xi)  << "   "
+   	     << std::setw(16) << std::setprecision(12) << params.pc_fracture(xi)  << "\n";
+    }
+    pc_file.close ();
 
     std::string file_name_gnu = dir + "/functions.gnu";
     std::ofstream out(file_name_gnu);
@@ -210,19 +226,28 @@ void plot_functions(Params const & params, unsigned int n = 0)
     out << "#set grid\n";
     out << "set xrange [0:1]\n";
 
-    auto tmp2 = min_max(file_name, 2);
-    auto tmp3 = min_max(file_name, 3);
-    auto tmp4 = min_max(file_name, 4);
-    double max = std::max(tmp2.second, tmp3.second);
-    max = std::max(max,tmp4.second);
+    //                          collon number -- starts with zero
+    auto tmp1 = min_max(full_file_name, 1);
+    auto tmp2 = min_max(full_file_name, 2);
+    auto tmp3 = min_max(full_file_name, 3);
+    double max = std::max(tmp1.second, tmp2.second);
+    max = std::max(max,tmp3.second);
 
     out << "set yrange [0.0:" << max << "]\n";
     out << "#set terminal postscript eps color solid lw 3\n";
     out << "#set output \"functions.eps\"\n";
-    out << "   plot " << file_name << " u 1:2 w l t \"alpha\",\\\n";
-    out << "        " << file_name << " u 1:3 w l t \"beta\",\\\n";
-    out << "        " << file_name << " u 1:4 w l t \"transfer\"\n";
+    out << "   plot " << "\"" << file_name << "\"" << " u 1:2 w l t \"alpha\",\\\n";
+    out << "        " << "\"" << file_name << "\"" << " u 1:3 w l t \"beta\",\\\n";
+    out << "        " << "\"" << file_name << "\"" << " u 1:4 w l t \"transfer\"\n";
+    out << "pause -1\n";
 
+    tmp2 = min_max(full_pc_file_name, 1);
+    tmp3 = min_max(full_pc_file_name, 2);
+    max = std::max(tmp2.second, tmp3.second);
+    out << "set yrange [0.0:" << max << "]\n";
+    out << "   plot " << "\"" << pc_file_name << "\"" << " u 1:2 w l t \"pc matrix\",\\\n";
+    out << "        " << "\"" << pc_file_name << "\"" << " u 1:3 w l t \"pc fracture\"\n";
+    out << "pause -1\n";
     out.close();
 }
 
@@ -316,11 +341,11 @@ struct Params{
     }
     else
     {
-       double vgAlphaMat  =  input_data.get<double>      ("Matrix.VanGenuchten.Alpha");
-       double vgNMat   =  input_data.get<double>      ("Matrix.VanGenuchten.N");
+       double vgAlphaMat  =  input_data.get<double>      ("Matrix-VanGenuchten.Alpha");
+       double vgNMat   =  input_data.get<double>      ("Matrix-VanGenuchten.N");
        Dumux::VanGenuchtenParams vgParamsMatrix(vgAlphaMat, vgNMat);
-       double vgAlphaFr  =  input_data.get<double>      ("Fracture.VanGenuchten.Alpha");
-       double vgNFr      =  input_data.get<double>      ("Fracture.VanGenuchten.N");
+       double vgAlphaFr  =  input_data.get<double>      ("Fracture-VanGenuchten.Alpha");
+       double vgNFr      =  input_data.get<double>      ("Fracture-VanGenuchten.N");
        Dumux::VanGenuchtenParams vgParamsFracture(vgAlphaFr, vgNFr);
 
        double muw =  input_data.get<double>("Fluids.WettingViscosity");
@@ -339,6 +364,9 @@ struct Params{
     // copy the input file into the simulation folder for documentation purposes
     std::string command = "cp " + filename + " " + date_and_time +"/";
     std::system(command.c_str());
+
+    // plot alpha and beta functions for gnuplot
+	aux::plot_functions(*this);
     return;
   }
 
@@ -387,17 +415,32 @@ struct Params{
 //     if(a < amin) a = amin;
 //     return a;
 //   }
+
+   double pc_matrix(double sw) const {
+	  if(flux_funct_index == 0) return sw;
+	  return vgImbFunMatrix.pc( sw );
+   }
+
+   double pc_fracture (double sw) const {
+   	  if(flux_funct_index == 0) return sw;
+   	  return vgImbFunFracture.pc( sw );
+   }
+
    double bdry_transfer(double s) const{
 	   if(flux_funct_index == 0) return s;
 	   return vgImbFunMatrix.sw( vgImbFunFracture.pc( s ) );
    }
+
    /// Saturation boundary condition on the matrix block boundary
    double bdry(double t) const {
 	   if(flux_funct_index == 0) return ptfun[function_index](t);
 	   return bdry_transfer( ptfun[function_index](t) );
    }
-   /// return boundary function (needed for analytic solution)
-   std::function<double(double)> bdry_fun() const {return ptfun[function_index]; }
+
+   /// return boundary function (needed for analytic solution) -- nema potrebe
+//   std::function<double(double)> bdry_fun() const {
+//	   return ptfun[function_index];
+//   }
 
    const ImbibitionFunctions * const imbib_fun() const {
      if(flux_funct_index == 0) return &aImbFun;
