@@ -82,13 +82,13 @@ int main(int argc, char** argv) {
 		Dune::dinfo.attach(mylog);
 		//Maybe initialize MPI
 		Dune::MPIHelper& helper = Dune::MPIHelper::instance(argc, argv);
-		if (Dune::MPIHelper::isFake)
-			std::cout << "This is a sequential program." << std::endl;
-		else {
-			if (helper.rank() == 0)
-				std::cout << "parallel run on " << helper.size()
-						<< " process(es)" << std::endl;
-		}
+//		if (Dune::MPIHelper::isFake)
+//			std::cout << "This is a sequential program." << std::endl;
+//		else {
+//			if (helper.rank() == 0)
+//				std::cout << "parallel run on " << helper.size()
+//						<< " process(es)" << std::endl;
+//		}
         // Read the input file
 		Params params;
 		params.read_input(argc, argv);
@@ -118,16 +118,26 @@ int main(int argc, char** argv) {
 			typedef Grid::LeafGridView GV;
 			const auto& gv = grid.leafGridView();
 
-			// launch parallel jobs if requested
-			std::vector<std::future<int>> rets;
+			// Numerical models launch as parallel jobs.
+			std::vector<std::future<int>> rets;  // execution times (in secs) for numerical models (parallel jobs)
+			int anC = 0, anV=0; // execution times (in secs) for analytic model (serial)
 			for(unsigned int i = 0; i < params.size; ++i){
-				if(params.simulation[i])
+				if(params.simulation[i] && i != Params::analytic_const
+						                && i != Params::analytic_var)
 				{
 				   params.model = static_cast<Params::Model>(i);
 				   std::cout << "Model " << i << " launched.\n";
-	//			   driver(gv,params);
     			   rets.push_back(std::async(std::launch::async, driver<GV, Params>, gv, params));
 				}
+			}
+			// Analytic jobs launch sequentially.
+			for(unsigned int i = 0; i < params.size; ++i){
+			    if(params.simulation[i] && (i == Params::analytic_const || i == Params::analytic_var)){
+				    params.model = static_cast<Params::Model>(i);
+			    	int a = driver(gv, params);
+			    	if(i == Params::analytic_const) anC = a;
+			    	else anV = a;
+			    }
 			}
 			// wait for all threads to complete before calling gnu_compare_c().
 			std::cout << "Waiting...\n";
@@ -137,12 +147,19 @@ int main(int argc, char** argv) {
 			// print execution times
 			unsigned int ii = -1;
 			for (unsigned int i = 0; i < params.size; ++i) {
-				if (params.simulation[i]) {
+				if (params.simulation[i] && i != Params::analytic_const
+		                                 && i != Params::analytic_var) {
 					ii++;
 					std::cout << " Time for " << params.simulation_names[i]
 							<< " is = " << rets[ii].get() << " sec\n";
 				}
 			}
+			if(params.simulation[Params::analytic_const])
+				std::cout << " Time for " << params.simulation_names[Params::analytic_const]
+											<< " is = " << anC << " sec\n";
+			if(params.simulation[Params::analytic_var])
+				std::cout << " Time for " << params.simulation_names[Params::analytic_var]
+											<< " is = " << anV << " sec\n";
 
 
 			// Gnuplot control file for displaying the solution output is given only in 1D

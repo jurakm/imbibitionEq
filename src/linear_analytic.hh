@@ -33,15 +33,6 @@ double find_upper_bound(double TOL){
   return M;
 }
 
-///** Boundary value function. Depends only on time.  */
-//double g(double t){
-//  return 0.3 + 0.2* std::sin(2*M_PI*t);
-//}
-///** Derivative of the boundary value function.  */
-//double dg_dt(double t){
-//  return  2*M_PI*0.2* std::cos(2*M_PI*t);
-//}
-//double dg_dt_shifted(double v, double t){ return dg_dt(t-v*v); }
 /**
  * Class holding the integrand for calculation of the integral
  * (boundary layer function)
@@ -66,7 +57,8 @@ class Integrand{
     	double perm = params.k;
     	double poro = params.poro;
     	double mean_alpha = params.mean_alpha;
-    	scaled_delta = delta *std::sqrt(perm*mean_alpha/poro);
+
+    	scaled_delta = delta * std::sqrt(perm*mean_alpha/poro);
     	assert(scaled_delta > 0.0);
         // factor = 2.0/std::sqrt(M_PI);
     	factor_der = 2 * poro * scaled_delta * factor;   // factor = 2.0/std::sqrt(M_PI)
@@ -77,12 +69,15 @@ class Integrand{
         // live 10 % of space since a number of points generated is not exactly default_table_size
         dt_table_ = tend/(0.9*default_table_size_);
         last_time_index_ = 0;
+
         time_.resize(default_table_size_);
         tau_time_.resize(default_table_size_);
         g_tau_time_.resize(default_table_size_);
+
         time_(0) = 0.0;
         tau_time_(0) = 0.0;
-        g_tau_time_(0) = bdry(0.0);
+        g_tau_time_(0) = params_.bdry(0.0); // t=0 <==> tau=0
+        // fill all the tables
         integrate_alpha_bdry(tend);
     }
     /** Calculate the flux in the case of constant linearisation. The result is
@@ -96,7 +91,7 @@ class Integrand{
     /** Calculate the solution of constant linearization in the time instant time.
      *  The solution is stored in lin_const_solution variable.
      */
-    void calculate_linear_const_solution(double time);
+    void calculate_linear_solution(double time);
     /** Print the solution of constant linearization calculated by calculate_linear_const_solution()
      *  method. We do not verify that the solution is indeed calculated.
      */
@@ -110,6 +105,8 @@ class Integrand{
     void print_tau(std::ostream & out);
     /** tau( t ). */
     double tau(double t) const;
+    /** t= t(tau), invers of tau. */
+    double inv_tau(double tau) const;
     /** g( t(tau) ), where t() is the increasing function of tau. */
     double bdry_comp_t(double tau) const;
   private:
@@ -117,10 +114,13 @@ class Integrand{
 
     void set_x(double xx) { x_=xx; check();  xi_ = x_/scaled_delta; }
 
-    /** Integrand in calculation of BL function Z(x,t). */
+    /** Integrand in calculation of BL function Z(x,t) in linear constant approximation case. */
     double g_shifted(double v, double t) const {
-      return factor * ( (bdry(t - xi_*xi_/(4*v*v)) - bdry(0.0)) * std::exp(-v*v) );
+      return factor * ( (bdry(tau(t) - xi_*xi_/(4*v*v)) - bdry(0.0)) * std::exp(-v*v) );
     }
+    /** Integrand in calculation of the nonwetting phase flux, scalled with the right factor.
+     * Linear constant case. */
+    double dg_dt_shifted(double v, double t){ return factor_der *  dg_dt(tau(t) - v*v); }
     /**  */
     double g_t_shifted(double v, double t) const {
           return factor * ( (bdry_comp_t(t - xi_*xi_/(4*v*v)) - bdry_comp_t(0.0)) * std::exp(-v*v) );
@@ -128,26 +128,39 @@ class Integrand{
     double g_t_shifted_1(double lambda, double tau) const{
     	  return  bdry_comp_t(tau - lambda*lambda) - bdry_comp_t(0.0);
     }
-    /** Integrand in calculation of the nonwetting phase flux, scalled with right factor. */
-    double dg_dt_shifted(double v, double t){ return factor_der * dg_dt(t-v*v); }
     /** Integral lower bound. */
-    double lower_bound(double t) const { return xi_/(2*std::sqrt(t));}
+    double lower_bound(double t) const { return xi_/(2*std::sqrt(tau(t)));}
     /** Boundary condition at the time t. */
-    double bdry(double t) const { return params_.bdry(t); }
+    double bdry(double t) const {
+    	if(params_.model == Params::analytic_const)	return params_.bdry(t);
+//    	std::cout << t << " " << inv_tau(t) << "\n";
+    	return params_.bdry(inv_tau(t));  // t is tau here
+    }
     /** Alpha-function. */
     double alpha(double S) const { return params_.alpha(S); }
 //    double alpha(double S) const { return params_.alpha(S)/params_.mean_alpha; }
-    /** Composition alpha( g(t) ). */
-    double a_g(double t) const { return params_.alpha( bdry(t) ); }
-//    double a_g(double t) const { return params_.alpha( bdry(t) )/params_.mean_alpha; }
+    /** Scaled composition alpha( g(t) ). */
+    double a_g(double t) const {
+    	if(params_.model == Params::analytic_const)	return 1.0;
+    	return params_.alpha( params_.bdry(t) )/params_.mean_alpha;
+    }
+    /** Derivative of the boundary value function.  */
+    double dg_dt(double t){
+    	if(t < h) return (bdry(t+h) - bdry(t))/h;
+    	return (bdry(t+h) - bdry(t-h))/(2*h);
+    }
+    void check(){
+       if(x_ < 0.0  || scaled_delta <= 0.0)
+         throw std::runtime_error("Integrand: x_ < 0.0 || scaled_delta <= 0.0");
+    }
     /** Calculate new entry in  new_time_field by calculating
      * \f[ \int_{t_0}^t \alpha_m( g(s)) ds,\f]
      * where \f$t_0\f$ is given by last_time_index_.
      */
     void integrate_alpha_bdry(double t);
 
-    double scaled_delta;
-    double x_= 0.0;
+    double scaled_delta = 0.0;
+    double x_  = 0.0;
     double xi_ = 0.0;
     const double factor = 2.0/std::sqrt(M_PI);
     double factor_der = 0.0;
@@ -164,84 +177,126 @@ class Integrand{
     /** Last index of calculated time in new_time_field. */
     unsigned int last_time_index_ = 0;
     const unsigned int default_table_size_ = 10000;
-    /** Pairs (t, tau(t)) where tau(t) = int_0^t alpha(g(s))ds. time_ holds t. */
+    /** time_ holds time  t. */
     boost::numeric::ublas::vector<double> time_;
-    /** Pairs (t, tau(t)) where tau(t) = int_0^t alpha(g(s))ds. tau_time_ holds tau(t).  */
+    /** tau_time_ holds tau(t): tau(t) = int_0^t alpha(g(s))ds.   */
     boost::numeric::ublas::vector<double> tau_time_;
-    /** Values of g( tau(t) ). */
+    /** Values of g( t ). */
     boost::numeric::ublas::vector<double> g_tau_time_;
 
-    void check(){
-       if(x_ < 0.0  || scaled_delta <= 0.0)
-         throw std::runtime_error("Integrand: x_ < 0.0 || scaled_delta <= 0.0");
-    }
 
     /** Boundary function taken from input file. */
   //  std::function<double(double)> g;
 
-    /** Derivative of the boundary value function.  */
-    double dg_dt(double t){
-    	return (bdry(t+h) - bdry(t-h))/(2*h);
-    }
 
 };
 
 template <typename Params>
 double Integrand<Params>::bdry_comp_t(double tau) const{
-	const double TOL = 1E-10;
-	double tau_max =  tau_time_[last_time_index_];
-	if(tau > tau_max + TOL)
-		throw std::runtime_error("Integrand<Params>::bdry_comp_t: tau > tau_max.");
+	// In analytic_const mode tau(t) = t and invers function t=t(tau) is simply identity.
+	if(params_.model == Params::analytic_const)	return params_.bdry(tau);
+    return params_.bdry(inv_tau(tau));
 
-	auto it = std::upper_bound(tau_time_.begin(), tau_time_.begin()+last_time_index_+1, tau);
-	auto index = it - tau_time_.begin(); // this is upper bound
-	if(index == 0)  return g_tau_time_[index];
-	if(index > last_time_index_){
-		// There is no bigger element, return largest value.
-		// This can hapen only on the last element.
-		assert(index == last_time_index_ + 1);
-		return g_tau_time_[index-1];
-//		std::cerr << tau << ", tau_max = " << tau_max << ", last_time_index = " << last_time_index_
-//				 << ", index = " << index << std::endl;
-//		throw std::logic_error("Internal error 542.");
-	}
-	const double g1 = g_tau_time_[index-1];
-	const double g2 = g_tau_time_[index];
-	const double t1 = tau_time_[index-1];
-	const double t2 = tau_time_[index];
-    double res = g1;
-	if(std::abs(t2-t1) >= TOL)
-           res += (tau-t1)*(g2-g1)/(t2-t1);
-    return res;
+//	const double TOL = 1E-10;
+//	double tau_max =  tau_time_[last_time_index_];
+//	if(tau > tau_max + TOL)
+//		throw std::runtime_error("Integrand<Params>::bdry_comp_t: tau > tau_max.");
+//
+//	auto it = std::upper_bound(tau_time_.begin(), tau_time_.begin()+last_time_index_+1, tau);
+//	auto index = it - tau_time_.begin(); // this is upper bound
+//	if(index == 0)  return g_tau_time_[index];
+//	if(index > last_time_index_){
+//		// There is no bigger element, return largest value.
+//		// This can hapen only on the last element.
+//		assert(index == last_time_index_ + 1);
+//		return g_tau_time_[index-1];
+////		std::cerr << tau << ", tau_max = " << tau_max << ", last_time_index = " << last_time_index_
+////				 << ", index = " << index << std::endl;
+////		throw std::logic_error("Internal error 542.");
+//	}
+//	// do linear interpolation
+//	const double g1 = g_tau_time_[index-1];
+//	const double g2 = g_tau_time_[index];
+//	const double t1 = tau_time_[index-1];
+//	const double t2 = tau_time_[index];
+//    double res = g1;
+//	if(std::abs(t2-t1) >= TOL)
+//           res += (tau-t1)*(g2-g1)/(t2-t1);
+//    return res;
 }
+
+// Calculate y=Y(x) by linear interpolation.
+double interpolate(boost::numeric::ublas::vector<double> const & X,
+		           boost::numeric::ublas::vector<double> const & Y, double x,
+		           unsigned int last_index) {
+	const double TOL = 1E-8;
+	double x_max = X[last_index];
+	if (x > x_max + TOL) {
+		std::cerr << "x= " << x << ", x_max = " << x_max << ", idx = " << last_index << std::endl;
+		throw std::runtime_error("interpolate: value out of bounds, error 541.");
+	}
+	// Small negative numbers are ossible.
+//	if(x < 0.0 and -x < TOL) x = 0.0;
+	auto it = std::upper_bound(X.begin(), X.begin() + last_index + 1, x);
+	auto index = it - X.begin(); // this is upper bound
+	if (index == 0){
+//		std::cout << "x = " << x << ", x_max = " << x_max << ", idx = " << last_index << std::endl;
+//		int bbb; std::cin >> bbb;
+//		return x;
+		throw std::logic_error("Internal error 542.");
+	}
+	if (index > last_index) {
+		// There is no bigger element, return largest value.
+		// This can happen only on the last element.
+		assert(index == last_index + 1);
+		return X[index - 1];
+	}
+	const double y1 = Y[index - 1];
+	const double y2 = Y[index];
+	const double x1 = X[index - 1];
+	const double x2 = X[index];
+	double y = y1;
+	if (std::abs(x2 - x1) >= TOL)
+		y += (x - x1) * (y2 - y1) / (x2 - x1);
+	return y;
+}
+
 
 template <typename Params>
 double Integrand<Params>::tau(double t) const{
-	const double TOL = 1E-10;
-	double t_max =  time_[last_time_index_];
-	if(t > t_max + TOL){
-		std::cerr << "t= " << t << ", t_max = " << t_max << std::endl;
-		throw std::runtime_error("Integrand<Params>::tau: t > t_max.");
-	}
-	auto it = std::upper_bound(time_.begin(), time_.begin()+last_time_index_+1, t);
-	auto index = it - time_.begin(); // this is upper bound
-	if(index == 0) throw std::logic_error("Internal error 542.");
-	if(index > last_time_index_){
-		// There is no bigger element, return largest value.
-		// This can happen only on the last element.
-		assert(index == last_time_index_ + 1);
-		return tau_time_[index-1];
-	}
-	const double g1 = tau_time_[index-1];
-	const double g2 = tau_time_[index];
-	const double t1 = time_[index-1];
-	const double t2 = time_[index];
-    double res = g1;
-	if(std::abs(t2-t1) >= TOL)
-           res += (t-t1)*(g2-g1)/(t2-t1);
-    return res;
-}
+	// In analytic_const mode tau(t) = t and invers function t=t(tau) is simply identity.
+	if(params_.model == Params::analytic_const)	return t;
 
+//	const double TOL = 1E-10;
+//	double t_max =  time_[last_time_index_];
+//	if(t > t_max + TOL){
+//		std::cerr << "t= " << t << ", t_max = " << t_max << std::endl;
+//		throw std::runtime_error("Integrand<Params>::tau: t > t_max.");
+//	}
+//	auto it = std::upper_bound(time_.begin(), time_.begin()+last_time_index_+1, t);
+//	auto index = it - time_.begin(); // this is upper bound
+//	if(index == 0) throw std::logic_error("Internal error 542.");
+//	if(index > last_time_index_){
+//		// There is no bigger element, return largest value.
+//		// This can happen only on the last element.
+//		assert(index == last_time_index_ + 1);
+//		return tau_time_[index-1];
+//	}
+//	const double g1 = tau_time_[index-1];
+//	const double g2 = tau_time_[index];
+//	const double t1 = time_[index-1];
+//	const double t2 = time_[index];
+//    double res = g1;
+//	if(std::abs(t2-t1) >= TOL)
+//           res += (t-t1)*(g2-g1)/(t2-t1);
+    return interpolate(time_, tau_time_, t, last_time_index_);
+}
+template <typename Params>
+double Integrand<Params>::inv_tau(double tau) const{
+	// In analytic_const mode tau(t) = t and invers function t=t(tau) is simply identity.
+	if(params_.model == Params::analytic_const)	return tau;
+    return interpolate(tau_time_, time_,  tau, last_time_index_);
+}
 
 template <typename Params>
 void Integrand<Params>::integrate_alpha_bdry(double t){
@@ -273,7 +328,7 @@ void Integrand<Params>::integrate_alpha_bdry(double t){
      	}
       	time_[last_time_index_] = time;
       	tau_time_[last_time_index_] = integr + res;
-      	g_tau_time_[last_time_index_] = bdry( time );
+      	g_tau_time_[last_time_index_] = params_.bdry( time );
 	}
 }
 
@@ -298,17 +353,20 @@ void Integrand<Params>::calculate_linear_const_flux(){
     		                           this, std::placeholders::_1, std::cref(t));
 
 //      o2scl::inte_qag_gsl<> inte_formula;
-      o2scl::inte_adapt_cern<> inte_formula;
+      o2scl::inte_adapt_cern<o2scl::funct11, 2000> inte_formula;
       // Output flux -- one value for each time instant.
       // Time loop
       lin_flux[0].first = 0.0;
       lin_flux[0].second = 0.0;
       double res=0.0, err=0.0;
       for(int it=1; it <=Nsteps; ++it){
+    	  res =-1; err = -1;
          // Calculate the flux by given formula
-         inte_formula.integ_err(fprim,0.0,std::sqrt(t),res,err);
+//    	 std::cout << "it = " << it << ", t = " << t << ", tau(t) = " << tau(t) << ", sqrt(tau(t))= " << std::sqrt(tau(t)) << std::endl;;
+         int errcode = inte_formula.integ_err(fprim,0.0,std::sqrt(tau(t)),res,err);
+//    	 std::cout << ", res = " <<  res << ", err = " << err  << std::endl;
          lin_flux[it].first = t;
-         lin_flux[it].second = res;
+         lin_flux[it].second = res * a_g(t);
     //    std::cout << "err = " << err << "\n";
          t += dt;
       }
@@ -370,7 +428,7 @@ void Integrand<Params>::print_flux(std::ostream & out){
 
 
 template<typename Params>
-void Integrand<Params>::calculate_linear_const_solution(double time) {
+void Integrand<Params>::calculate_linear_solution(double time) {
 	double L = params_.L;
 	MGF<Params> d1(params_);
 	std::vector<double> x2;
@@ -451,12 +509,12 @@ void Integrand<Params>::calculate_linear_var_solution(double time) {
 
 template <typename Params>
 void Integrand<Params>::print_solution(std::ostream & out){
-	if(params_.model == Params::analytic_const)
+//	if(params_.model == Params::analytic_const)
 	for(unsigned int i = 0; i < lin_const_solution.size(); ++i)
 	    	out << lin_const_solution[i].first << "  " << lin_const_solution[i].second <<"\n";
-	else
-	for(unsigned int i = 0; i < lin_var_solution.size(); ++i)
-	    	out << lin_var_solution[i].first << "  " << lin_var_solution[i].second <<"\n";
+//	else
+//	for(unsigned int i = 0; i < lin_var_solution.size(); ++i)
+//	    	out << lin_var_solution[i].first << "  " << lin_var_solution[i].second <<"\n";
 
 }
 
@@ -470,28 +528,30 @@ int lin_analytic(Params params) {
 	double dt = params.dtout;
 	int Nsteps = params.tend / dt;
 	double t = 0.0;
-
+    // 1. Calculate flux
 	const std::string base( params.str_sname + params.simulation_names[params.model] );
     const std::string tau = base + "-tau.txt";
     std::ofstream out_tau(tau);
     a.print_tau(out_tau);
     out_tau.close();
 
-    if(params.model == Params::analytic_const)
+//    if(params.model == Params::analytic_const)
 	     a.calculate_linear_const_flux();
-    else
-	     a.calculate_linear_var_flux();
+//    else
+//	     a.calculate_linear_var_flux();
 	// Output flux -- one value for each time instant.
 	const std::string flux( base + "-flux.txt");
 	std::ofstream out_flux(flux);
 	a.print_flux(out_flux);
 	out_flux.close();
+	// 2. Calculate solution
 	// Time loop
 	for (int it = 0; it <= Nsteps; ++it) {
-		if(params.model == Params::analytic_const)
-		     a.calculate_linear_const_solution(t);
-		else
-		     a.calculate_linear_var_solution(t);
+		a.calculate_linear_solution(t);
+//		if(params.model == Params::analytic_const)
+//		     a.calculate_linear_const_solution(t);
+//		else
+//		     a.calculate_linear_var_solution(t);
 		// Make output file name for analytic solution
 		const std::string name( base + std::to_string(it)+".txt");
 		std::ofstream out(name);
@@ -499,6 +559,7 @@ int lin_analytic(Params params) {
 		out.close();
 		t += dt;
 	}
+	std::cout << params.simulation_names[params.model] << " done.\n";
 	auto end = std::chrono::system_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::seconds> (end - start);
 	return duration.count();

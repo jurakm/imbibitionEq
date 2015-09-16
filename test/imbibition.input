@@ -2,7 +2,7 @@ Permeability = 1.0
 Porosity = 1.0
 Delta = 0.01
 AlphaCutOffMultiplier =  1.0E-3
-Model = NMVCAB
+Model = CVAB
 #Model = constant_linear [C]
 #Model = variable_linear [V]
 #Model = nonlinear       [N]
@@ -19,7 +19,7 @@ FluxFunction = 1   # 0 = artificial
                    # 1 = van Genuchten
 [Grid]
 Length = 1.0  # Length of the side of the grid
-NPoints  = 20000 #  No of points in each coordinate direction 
+NPoints  = 1000 #  No of points in each coordinate direction 
 Q = 0.3  # portion of the mesh points used to resolve BL
 Sigma = 1 # Grading of the mesh inside the layer (?)
 
@@ -46,7 +46,7 @@ LineSearchDamping = 0.9
 VerbosityLevel = 0
 
 [Output]
-SimulationBaseName = del_0.05
+SimulationBaseName = d
 VTK = 0   # 0=false, 1=true
 TXT = 1   # 0=false, 1=true
 
@@ -58,5 +58,5 @@ NonWettingViscosity = 0.8     # cP
 Alpha = 0.5           # 1/bar 
 N    = 2.0
 [Fracture-VanGenuchten]
-Alpha = 2.0           # 1/bar 
-N    = 2.5
+Alpha = 0.5           # 1/bar 
+N    = 2.0
