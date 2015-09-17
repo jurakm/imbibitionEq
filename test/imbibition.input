@@ -2,13 +2,14 @@ Permeability = 1.0
 Porosity = 1.0
 Delta = 0.01
 AlphaCutOffMultiplier =  1.0E-3
-Model = CVAB
+Model = EABN
 #Model = constant_linear [C]
 #Model = variable_linear [V]
 #Model = nonlinear       [N]
 #Model = new_nonlinear   [M]
 #Model = const analytic  [A]
 #Model = var   analytic  [B]
+#Model = new   analytic  [E]
 BoundaryFunction = 5 # 0 = 0.35 + 0.2 * sin(2*PI*t)
                      # 1 = ((0.9-0.1)/PI)*atan((2*t-1)/0.1)+(0.9+0.1)/2
                      # 2 = -((0.9-0.1)/PI)*atan((2*t-1)/0.1)+(0.9+0.1)/2

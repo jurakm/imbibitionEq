@@ -128,7 +128,7 @@ void gnu_compare_c(Params const & params){
 	for (unsigned int i = 0; i < params.size; ++i) {
 		if (params.simulation[i]) {
 	     	std::string name = params.str_sname  + params.simulation_names[i] + "-flux.txt";
-	     	if(i == params.analytic_const){
+	     	if(i == params.analytic_const || i == params.analytic_var ||i == params.analytic_new){
 	     	    auto tmp1 = min_max(name, 1);
 	     	    if(tmp1.first < tmp.first) tmp.first = tmp1.first;
 	     	    if(tmp1.second > tmp.second) tmp.second = tmp1.second;
@@ -158,9 +158,7 @@ void gnu_compare_c(Params const & params){
 			out << "   plot ";
 		if (params.simulation[i]) {
 			cnt++;
-			if(i == params.analytic_const)
-     			out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name;
-			else if(i == params.analytic_var)
+			if(i == params.analytic_const || i == params.analytic_var ||i == params.analytic_new)
      			out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name;
 			else{
 			   out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name + " vol int\",\\\n";
@@ -284,7 +282,7 @@ void plot_functions(Params const & params, unsigned int n = 0)
 struct Params{
 	/// Enum constants describing different imbibition models.
 	enum Model{
-	  new_nonlinear=0, nonlinear, constant_linear, variable_linear, analytic_const, analytic_var, size
+	  new_nonlinear=0, nonlinear, constant_linear, variable_linear, analytic_const, analytic_var, analytic_new, size
 	};
  /**
   * Read all parameters from an input file. It must be called explicitly
@@ -389,6 +387,7 @@ struct Params{
           simulation_names[variable_linear] = "vlin";
           simulation_names[analytic_const] = "anac";
           simulation_names[analytic_var] = "anav";
+          simulation_names[analytic_new] = "ana_n";
    }
 
    Dune::ParameterTree input_data;
@@ -506,6 +505,9 @@ private:
 		             break;
 		   case 'b':
 		   case 'B': simulation[analytic_var] = true;
+		             break;
+		   case 'e':
+		   case 'E': simulation[analytic_new] = true;
 		             break;
 
 		   }
