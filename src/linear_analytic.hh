@@ -18,6 +18,7 @@
 
 #include <o2scl/inte_qag_gsl.h>
 #include <o2scl/inte_adapt_cern.h>
+#include <o2scl/exception.h>
 
 #include "parameters.hh"
 #include "mgf.hh"
@@ -142,16 +143,33 @@ class Integrand{
     }
     /** Scaled composition alpha( g(t) ). */
     double a_g(double t) const {
-    	const double TOL = 1.0e-8;
+    	static const double TOL = 1.0e-5;
+    	//static const double bs0 = params_.beta( params_.bdry(0.0) );
+    	//  najbolji rezultati su sa 0.75.
     	double val = 1.0;
     	if(model_ == Params::analytic_const)
     		val = 1.0;
     	else if(model_ == Params::analytic_var)
     	   val = params_.alpha( params_.bdry(t) )/params_.mean_alpha;
     	else if(model_ == Params::analytic_new){
-    		const double dS = params_.bdry(t) - params_.bdry(0.0);
-    		if(std::abs(dS) > TOL)
-    	        val = ( params_.beta( params_.bdry(t) ) - params_.beta( params_.bdry(0.0) ) )/ dS ;
+    		// 0.5 daje preveliki flux, 1 daje premali.
+    		const double Yt = params_.bdry(t);
+    		const double dS = Yt - params_.bdry(0.0);
+    		if(std::abs(dS*theta) > TOL){
+    	        val = ( params_.beta( Yt ) - params_.beta( Yt - dS*theta) )/ (dS*theta);
+    		}
+    		else
+    			val = params_.alpha( params_.bdry(t) );
+
+    		val /= params_.mean_alpha;
+    	}
+    	else if(model_ == Params::analytic_new1){
+    		const double Yt = params_.bdry(t);
+    		const double Yt0 = (t>dt_bdry) ? params_.bdry(t - dt_bdry) : params_.bdry(0.0);
+    		const double dS = Yt - Yt0;
+    		if(std::abs(dS*theta) > TOL){
+    	        val = ( params_.beta( Yt ) - params_.beta( Yt0) )/ dS;
+    		}
     		else
     			val = params_.alpha( params_.bdry(t) );
 
@@ -180,6 +198,8 @@ class Integrand{
     double factor_der = 0.0;
     const double h = 1.0E-7;
     double dt_table_ = 0.0;
+    double theta = 1.0;
+    double dt_bdry = 0.0;
 
     /** Linear model flux; pairs (t, flux(t)).  */
     std::vector<std::pair<double,double>> lin_flux;
@@ -201,6 +221,8 @@ Integrand<Params>::Integrand(Params const & params) : params_(params), model_(pa
    	double perm = params.k;
    	double poro = params.poro;
    	double mean_alpha = params.mean_alpha;
+   	theta = params.theta;
+   	dt_bdry = params.dt_bdry;
 
    	scaled_delta = delta * std::sqrt(perm*mean_alpha/poro);
    	assert(scaled_delta > 0.0);
@@ -250,12 +272,14 @@ void Integrand<Params>::integrate_alpha_bdry(double tend){
 		// there is no need for integration -- this situation is possibly an error.
 		return;
 	}
-
+	auto tmp = o2scl::err_hnd;
+	o2scl::err_hnd =  new o2scl::err_hnd_cpp();
 	o2scl::funct11 f = std::bind(std::mem_fn<double(double)const>(&Integrand<Params>::a_g),
 	    		                 this, std::placeholders::_1);
 
-	o2scl::inte_qag_gsl<> inte_formula;
-	inte_formula.tol_abs = inte_formula.tol_rel = 1e-6;
+    o2scl::inte_adapt_cern<o2scl::funct11, 2000> inte_formula;
+//	o2scl::inte_qag_gsl<> inte_formula;
+	inte_formula.tol_abs = inte_formula.tol_rel = 1e-5;
 	double res=0.0, err=0.0;
 	double intpart;
 	double fractpart = std::modf((tend - t_inf)/dt_table_, &intpart);
@@ -272,6 +296,8 @@ void Integrand<Params>::integrate_alpha_bdry(double tend){
       	time_[last_time_index_] = time;
       	tau_time_[last_time_index_] = integr + res;
 	}
+	delete o2scl::err_hnd;
+	o2scl::err_hnd = tmp;
 }
 
 // just for debugging
@@ -293,9 +319,12 @@ void Integrand<Params>::calculate_flux(){
 
       o2scl::funct11 fprim = std::bind(std::mem_fn<double(double,double)>(&Integrand<Params>::dg_dt_shifted),
     		                           this, std::placeholders::_1, std::cref(t));
-
+      auto tmp = o2scl::err_hnd;
+      o2scl::err_hnd =  new o2scl::err_hnd_cpp();
 //      o2scl::inte_qag_gsl<> inte_formula;
       o2scl::inte_adapt_cern<o2scl::funct11, 2000> inte_formula;
+      inte_formula.tol_rel = 1.0e-5;
+      inte_formula.tol_abs = 1.0e-5;
       // Output flux -- one value for each time instant.
       // Time loop
       lin_flux[0].first = 0.0;
@@ -312,54 +341,13 @@ void Integrand<Params>::calculate_flux(){
     //    std::cout << "err = " << err << "\n";
          t += dt;
       }
+      delete o2scl::err_hnd;
+      o2scl::err_hnd = tmp;
+
       return;
 }
 
-//template <typename Params>
-//void Integrand<Params>::calculate_linear_var_flux(){
-//      double dt   = params_.dtout;
-//      int    Nsteps = params_.tend / dt;
-//      double  t = 0.0;
-//      double tau_t = 0.0;
-//	  const double h = 1E-6; // parameter for num diff
-//      lin_flux.resize(Nsteps+1);
-//      std::fill(lin_flux.begin(), lin_flux.end(), std::make_pair(0.0,0.0));
-//
-//      o2scl::funct11 fprim = std::bind(std::mem_fn<double(double,double)const>(&Integrand<Params>::g_t_shifted_1),
-//    		                           this, std::placeholders::_1, std::cref(tau_t));
-////      o2scl::inte_qag_gsl<> inte_formula;
-//      o2scl::inte_adapt_cern<> inte_formula;
-//
-//
-//      double res1=0.0, err1=0.0, res0=0.0, err0=0.0;
-//      // One sided diference for t=0
-//      inte_formula.integ_err(fprim,0.0,std::sqrt(0.0 + h),res1,err1);
-//      lin_flux[0].first = t;
-//      lin_flux[0].second = factor_1 * a_g(0.0) * (res1 - 0.0)/h;
-//      // Output flux -- one value for each time instant.
-//      // Time loop
-//      t = dt;
-//      for(int it=1; it <Nsteps; ++it){
-//         // Calculate the flux by given formula
-//         tau_t = tau(t)+ h/2;
-//         inte_formula.integ_err(fprim,0.0,std::sqrt(tau_t + h/2),res1,err1);
-//         tau_t = tau(t)- h/2;
-//         inte_formula.integ_err(fprim,0.0,std::sqrt(tau_t - h/2),res0,err0);
-//         lin_flux[it].first = t;
-//         lin_flux[it].second = factor_1 * a_g(t) * (res1 - res0)/h;
-//    //     std::cout << factor_1 << " " << a_g(t) << " " << (res1 - res0)/h << std::endl;
-//    //    std::cout << "err = " << err << "\n";
-//         t += dt;
-//      }
-//      tau_t = tau(t);
-//      inte_formula.integ_err(fprim,0.0,std::sqrt(tau_t),res1,err1);
-//      tau_t = tau(t)-h;
-//      inte_formula.integ_err(fprim,0.0,std::sqrt(tau_t - h),res0,err0);
-//      lin_flux[Nsteps].first = t;
-//      lin_flux[Nsteps].second = factor_1 * a_g(t) * (res1 - res0)/h;
-//
-//      return;
-//}
+
 
 template <typename Params>
 void Integrand<Params>::print_flux(std::ostream & out){
@@ -381,7 +369,9 @@ void Integrand<Params>::calculate_solution(double time) {
 			std::mem_fn<double(double, double)const>(&Integrand<Params>::g_shifted),
 			this, std::placeholders::_1, std::cref(time));
 //	  o2scl::inte_qag_gsl<> inte_formula;
-	o2scl::inte_adapt_cern<> inte_formula;
+    o2scl::inte_adapt_cern<o2scl::funct11, 2000> inte_formula;
+      auto tmp = o2scl::err_hnd;
+      o2scl::err_hnd =  new o2scl::err_hnd_cpp();
 
 	double lb, ub, res1, res2, err;
 	if (time == 0.0)
@@ -405,6 +395,8 @@ void Integrand<Params>::calculate_solution(double time) {
 			lin_solution[i].first = x2[i];
 			lin_solution[i].second = bdry(0.0) + res1 + res2;
 		}
+      delete o2scl::err_hnd;
+      o2scl::err_hnd = tmp;
 	return;
 }
 

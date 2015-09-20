@@ -128,7 +128,8 @@ void gnu_compare_c(Params const & params){
 	for (unsigned int i = 0; i < params.size; ++i) {
 		if (params.simulation[i]) {
 	     	std::string name = params.str_sname  + params.simulation_names[i] + "-flux.txt";
-	     	if(i == params.analytic_const || i == params.analytic_var ||i == params.analytic_new){
+	     	if(i == params.analytic_const || i == params.analytic_var ||
+	     	   i == params.analytic_new ||i == params.analytic_new1){
 	     	    auto tmp1 = min_max(name, 1);
 	     	    if(tmp1.first < tmp.first) tmp.first = tmp1.first;
 	     	    if(tmp1.second > tmp.second) tmp.second = tmp1.second;
@@ -158,7 +159,8 @@ void gnu_compare_c(Params const & params){
 			out << "   plot ";
 		if (params.simulation[i]) {
 			cnt++;
-			if(i == params.analytic_const || i == params.analytic_var ||i == params.analytic_new)
+			if(i == params.analytic_const || i == params.analytic_var
+					||i == params.analytic_new||i == params.analytic_new1)
      			out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name;
 			else{
 			   out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name + " vol int\",\\\n";
@@ -282,7 +284,8 @@ void plot_functions(Params const & params, unsigned int n = 0)
 struct Params{
 	/// Enum constants describing different imbibition models.
 	enum Model{
-	  new_nonlinear=0, nonlinear, constant_linear, variable_linear, analytic_const, analytic_var, analytic_new, size
+	  new_nonlinear=0, nonlinear, constant_linear, variable_linear, analytic_const,
+	  analytic_var, analytic_new, analytic_new1, size
 	};
  /**
   * Read all parameters from an input file. It must be called explicitly
@@ -306,7 +309,9 @@ struct Params{
     k         =  input_data.get<double>      ("Permeability");
     poro      =  input_data.get<double>      ("Porosity");
     delta     =  input_data.get<double>      ("Delta");
-    acom      =  input_data.get<double>      ("AlphaCutOffMultiplier");
+    theta     =  input_data.get<double>      ("Theta");
+    dt_bdry   =  input_data.get<double>      ("DtBdry");
+//    acom      =  input_data.get<double>      ("AlphaCutOffMultiplier");
     level     =  input_data.get<int>         ("Refinement.Level");
     N         =  input_data.get<int>         ("Grid.NPoints");
     q         =  input_data.get<double>      ("Grid.Q");
@@ -353,7 +358,7 @@ struct Params{
        mean_alpha = vgImbFunMatrix.beta(1.0);
        vgImbFunFracture.init(vgParamsFracture, muw, mun);
     }
-    amin = mean_alpha * acom;
+//    amin = mean_alpha * acom;
     // All simulation output goes to the folder named after current date and time.
     date_and_time = aux::date_time();
     // create folder if it does not exist.
@@ -388,6 +393,7 @@ struct Params{
           simulation_names[analytic_const] = "anac";
           simulation_names[analytic_var] = "anav";
           simulation_names[analytic_new] = "ana_n";
+          simulation_names[analytic_new1] = "ana_1";
    }
 
    Dune::ParameterTree input_data;
@@ -447,11 +453,13 @@ struct Params{
    }
    // Constants
    double a = 0.0;       ///< amplitude of the artificial alpha function
-   double acom = 0.0;    ///< alpha cut off multiplier
+//   double acom = 0.0;    ///< alpha cut off multiplier
    double mean_alpha = 0.0;  ///<   \f$\int_0^1 \alpha(s) ds\f$
    // Porous media
    double k = 0.0;       ///< permeability
    double poro = 0.0;    ///< porosity
+   double theta = 1.0;   ///< a factor in calculating the mean value of diffusion coefficient
+   double dt_bdry = 0.0; ///< a dt in calculating the mean value of diffusion coefficient
    // Grid generation parameters
    double delta = 0.0;   ///< \f$\delta\f$ parameter
    double q = 0.0;       ///< Bakhvalov grid generation parameter.
@@ -479,7 +487,7 @@ private:
    std::vector<std::function<double(double)>> ptfun;
    unsigned int function_index = 0;
    unsigned int flux_funct_index = 0;
-   double amin = 0.0; //alpha(0.5)/20;
+//   double amin = 0.0; //alpha(0.5)/20;
    // implementations of alpha-functions
    ArtifImbibitionFunctions aImbFun;
    RealImbibitionFunctions<Dumux::VanGenuchten> vgImbFunMatrix;
@@ -509,7 +517,9 @@ private:
 		   case 'e':
 		   case 'E': simulation[analytic_new] = true;
 		             break;
-
+		   case 'f':
+		   case 'F': simulation[analytic_new1] = true;
+		             break;
 		   }
 	   }
    }
