@@ -3,14 +3,6 @@
 	<name>imbibitionEq</name>
 	<comment></comment>
 	<projects>
-		<project>dune-alugrid</project>
-		<project>dune-common</project>
-		<project>dune-geometry</project>
-		<project>dune-grid</project>
-		<project>dune-istl</project>
-		<project>dune-localfunctions</project>
-		<project>dune-pdelab</project>
-		<project>dune-typetree</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

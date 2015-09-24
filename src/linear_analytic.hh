@@ -334,7 +334,7 @@ void Integrand<Params>::calculate_flux(){
     	  res =-1; err = -1;
          // Calculate the flux by given formula
 //    	 std::cout << "it = " << it << ", t = " << t << ", tau(t) = " << tau(t) << ", sqrt(tau(t))= " << std::sqrt(tau(t)) << std::endl;;
-         int errcode = inte_formula.integ_err(fprim,0.0,std::sqrt(tau(t)),res,err);
+         inte_formula.integ_err(fprim,0.0,std::sqrt(tau(t)),res,err);
 //    	 std::cout << ", res = " <<  res << ", err = " << err  << std::endl;
          lin_flux[it].first = t;
          lin_flux[it].second = res * a_g(t);
