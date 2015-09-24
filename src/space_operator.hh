@@ -53,8 +53,8 @@ public:
 		// method
 
 		// dimensions
-		const int dim  = EG::Geometry::dimension;
-		const int dimw = EG::Geometry::dimensionworld;
+		const int dim  = EG::Geometry::mydimension;
+		const int dimw = EG::Geometry::coorddimension;
 
 		// extract some types
 		typedef typename LFSU::Traits::FiniteElementType::Traits::LocalBasisType::Traits LBTraits;
