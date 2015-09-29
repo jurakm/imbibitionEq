@@ -29,14 +29,14 @@
 #include <dune/common/parallel/mpihelper.hh>
 #include <dune/common/exceptions.hh>
 #include <dune/common/fvector.hh>
-#include <dune/common/static_assert.hh>
+//#include <dune/common/static_assert.hh>
 #include <dune/common/timer.hh>
 // For reading of an .input file.
 #include <dune/common/parametertree.hh>
 #include <dune/common/parametertreeparser.hh>
 
 #include <dune/grid/io/file/vtk/subsamplingvtkwriter.hh>
-#include <dune/grid/io/file/gmshreader.hh>
+//#include <dune/grid/io/file/gmshreader.hh>
 #include <dune/grid/yaspgrid.hh>
 
 #include <dune/istl/bvector.hh>
@@ -56,8 +56,9 @@
 #include <dune/pdelab/constraints/conforming.hh>
 #include <dune/pdelab/gridoperator/gridoperator.hh>
 #include <dune/pdelab/gridoperator/onestep.hh>
-#include <dune/pdelab/backend/istlvectorbackend.hh>
-#include <dune/pdelab/backend/istlmatrixbackend.hh>
+//#include <dune/pdelab/backend/istlvectorbackend.hh>
+#include <dune/pdelab/backend/istl.hh>
+//#include <dune/pdelab/backend/istlmatrixbackend.hh>
 #include <dune/pdelab/backend/istlsolverbackend.hh>
 #include <dune/pdelab/stationary/linearproblem.hh>
 #include <dune/pdelab/instationary/onestep.hh>
@@ -95,7 +96,7 @@ int main(int argc, char** argv) {
 
 		// sequential version
 		if (helper.size() == 1) {
-			const int dim = 1;
+			const int dim = 2;
 
 			// Construct 1D Bakhvalov grid which is able to resolve boundary layers
 			// and use the Cartesian product of this 1D grid.

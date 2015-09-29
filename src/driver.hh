@@ -45,7 +45,7 @@ int driver(GV const& gv, Params params)  // take a copy of params
 	typedef Dune::PDELab::QkLocalFiniteElementMap<GV, Coord, Real, fem_order> FEM;
 	FEM fem(gv);
 	typedef Dune::PDELab::ConformingDirichletConstraints CON;
-	typedef Dune::PDELab::ISTLVectorBackend<> VBE;
+	typedef Dune::PDELab::istl::VectorBackend<> VBE;
 	typedef Dune::PDELab::GridFunctionSpace<GV, FEM, CON, VBE> GFS;
 	GFS gfs(gv, fem);
 
@@ -135,8 +135,7 @@ int driver(GV const& gv, Params params)  // take a copy of params
 		DGF udgf(gfs, uold);
 		if (params.vtkout) {
 			Dune::SubsamplingVTKWriter<GV> vtkwriter(gv, fem_order - 1);
-			vtkwriter.addVertexData(
-					new Dune::PDELab::VTKGridFunctionAdapter<DGF>(udgf, filenm));
+			vtkwriter.addVertexData(std::make_shared<Dune::PDELab::VTKGridFunctionAdapter<DGF>>(udgf, filenm));
 			vtkwriter.write(fn.getName(), Dune::VTK::ascii);
 			fn.increment();
 		}
@@ -183,8 +182,7 @@ int driver(GV const& gv, Params params)  // take a copy of params
 		DGF udgf(gfs, unew);
 		if (params.vtkout and timeMng.doOutput()) {
 			Dune::SubsamplingVTKWriter<GV> vtkwriter(gv, fem_order - 1);
-			vtkwriter.addVertexData(
-					new Dune::PDELab::VTKGridFunctionAdapter<DGF>(udgf, filenm));
+			vtkwriter.addVertexData(std::make_shared<Dune::PDELab::VTKGridFunctionAdapter<DGF>>(udgf, filenm));
 			vtkwriter.write(fn.getName(), Dune::VTK::ascii);
 			fn.increment();
 		}

@@ -4,7 +4,7 @@ Delta = 0.01
 AlphaCutOffMultiplier =  1.0E-3
 Theta = 0.75                      # Theta \in (0,1] ; Theta = 1 --> mean value over whole interval 
 DtBdry = 0.4                      #     
-Model = ABEFN
+Model = NCV
 #Model = constant_linear [C]
 #Model = variable_linear [V]
 #Model = nonlinear       [N]
@@ -13,7 +13,7 @@ Model = ABEFN
 #Model = var   analytic  [B]
 #Model = new   analytic  [E]
 #Model = new   analytic1 [F]
-BoundaryFunction = 0 # 0 = 0.35 + 0.2 * sin(2*PI*t)
+BoundaryFunction = 5 # 0 = 0.35 + 0.2 * sin(2*PI*t)
                      # 1 = ((0.9-0.1)/PI)*atan((2*t-1)/0.1)+(0.9+0.1)/2
                      # 2 = -((0.9-0.1)/PI)*atan((2*t-1)/0.1)+(0.9+0.1)/2
                      # 3 = 0.35 - 0.2* std::sin(2*M_PI*t)
