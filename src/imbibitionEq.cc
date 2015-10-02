@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
 
 		// sequential version
 		if (helper.size() == 1) {
-			const int dim = 2;
+			const int dim = 1;
 
 			// Construct 1D Bakhvalov grid which is able to resolve boundary layers
 			// and use the Cartesian product of this 1D grid.
