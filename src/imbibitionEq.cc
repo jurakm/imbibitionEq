@@ -56,9 +56,9 @@
 #include <dune/pdelab/constraints/conforming.hh>
 #include <dune/pdelab/gridoperator/gridoperator.hh>
 #include <dune/pdelab/gridoperator/onestep.hh>
-//#include <dune/pdelab/backend/istlvectorbackend.hh>
-#include <dune/pdelab/backend/istl.hh>
-//#include <dune/pdelab/backend/istlmatrixbackend.hh>
+#include <dune/pdelab/backend/istlvectorbackend.hh>
+//#include <dune/pdelab/backend/istl.hh> -- nova verzija pdelaba 
+#include <dune/pdelab/backend/istlmatrixbackend.hh>
 #include <dune/pdelab/backend/istlsolverbackend.hh>
 #include <dune/pdelab/stationary/linearproblem.hh>
 #include <dune/pdelab/instationary/onestep.hh>
@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
 
 		// sequential version
 		if (helper.size() == 1) {
-			const int dim = 2;
+			const int dim = 1;
 
 			// Construct 1D Bakhvalov grid which is able to resolve boundary layers
 			// and use the Cartesian product of this 1D grid.
