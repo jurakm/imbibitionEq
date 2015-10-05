@@ -370,6 +370,8 @@ struct Params{
 
     // plot alpha and beta functions for gnuplot
 	aux::plot_functions(*this);
+	scaled_delta = delta * std::sqrt(k*mean_alpha/poro);
+	std::cout << "Scaled delta = " << scaled_delta << std::endl;
     return;
   }
 
@@ -462,6 +464,7 @@ struct Params{
    double dt_bdry = 0.0; ///< a dt in calculating the mean value of diffusion coefficient
    // Grid generation parameters
    double delta = 0.0;   ///< \f$\delta\f$ parameter
+   double scaled_delta = 0.0; ///< \f$\delta\sqrt{k\alpha_m/\Phi}\f$
    double q = 0.0;       ///< Bakhvalov grid generation parameter.
    double sigma = 0.0;   ///< Bakhvalov grid generation parameter.
    // grid

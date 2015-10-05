@@ -212,36 +212,42 @@ class Integrand{
     boost::numeric::ublas::vector<double> time_;
     /** tau_time_ holds tau(t): tau(t) = int_0^t alpha(g(s))ds.   */
     boost::numeric::ublas::vector<double> tau_time_;
+
+    /** x-coordinates for the solution. */
+	std::vector<double> x_coo;
 };
 
-template <typename Params>
-Integrand<Params>::Integrand(Params const & params) : params_(params), model_(params_.model){
-    // take parameters
-   	double delta = params.delta;
-   	double perm = params.k;
-   	double poro = params.poro;
-   	double mean_alpha = params.mean_alpha;
-   	theta = params.theta;
-   	dt_bdry = params.dt_bdry;
+template<typename Params>
+Integrand<Params>::Integrand(Params const & params) :
+		params_(params), model_(params_.model) {
+	// take parameters
+	//double delta = params.delta;
+	//double perm = params.k;
+	double poro = params.poro;
+	//double mean_alpha = params.mean_alpha;
+	theta = params.theta;
+	dt_bdry = params.dt_bdry;
+	scaled_delta = params.scaled_delta;
+//   	scaled_delta = delta * std::sqrt(perm*mean_alpha/poro);
+	assert(scaled_delta > 0.0);
+	// factor = 2.0/std::sqrt(M_PI);
+	factor_der = 2 * poro * scaled_delta * factor;
 
-   	scaled_delta = delta * std::sqrt(perm*mean_alpha/poro);
-   	assert(scaled_delta > 0.0);
-       // factor = 2.0/std::sqrt(M_PI);
-   	factor_der = 2 * poro * scaled_delta * factor;
+	double tend = params.tend;
+	// live 10 % of space since a number of points generated is not exactly default_table_size
+	dt_table_ = tend / (0.9 * default_table_size_);
+	last_time_index_ = 0;
 
-       double tend = params.tend;
-       // live 10 % of space since a number of points generated is not exactly default_table_size
-       dt_table_ = tend/(0.9*default_table_size_);
-       last_time_index_ = 0;
+	time_.resize(default_table_size_);
+	tau_time_.resize(default_table_size_);
 
-       time_.resize(default_table_size_);
-       tau_time_.resize(default_table_size_);
-
-       time_(0) = 0.0;
-       tau_time_(0) = 0.0;
-       // fill the tables -- calculates tau(t)
-       integrate_alpha_bdry(tend);
-   }
+	time_(0) = 0.0;
+	tau_time_(0) = 0.0;
+	// fill the tables -- calculates tau(t)
+	integrate_alpha_bdry(tend);
+	MGF<Params> d1(params_);
+	d1.double_side_interval(x_coo);
+}
 
 
 template <typename Params>
@@ -360,9 +366,6 @@ void Integrand<Params>::print_flux(std::ostream & out){
 template<typename Params>
 void Integrand<Params>::calculate_solution(double time) {
 	double L = params_.L;
-	MGF<Params> d1(params_);
-	std::vector<double> x2;
-	d1.double_side_interval(x2);
 	lin_solution.resize(params_.N);
 
 	o2scl::funct11 f = std::bind(
@@ -376,23 +379,24 @@ void Integrand<Params>::calculate_solution(double time) {
 	double lb, ub, res1, res2, err;
 	if (time == 0.0)
 		for (int i = 0; i < params_.N; ++i) {
-			lin_solution[i].first = x2[i];
+			lin_solution[i].first = x_coo[i];
 			lin_solution[i].second = bdry(0.0);
 		}
 	else
 		for (int i = 0; i < params_.N; ++i) {
-			set_x(x2[i]);
+			set_x(x_coo[i]);
 			lb = lower_bound(time);  // depends on x!
+			assert(lb >= 0.0);
 			ub = std::max(6.0, lb + 1);
 			// calculate Z(x,t)
 			inte_formula.integ_err(f, lb, ub, res1, err);
 //	        std::cout << "err = " << err <<"\n";
-			set_x(L - x2[i]);
+			set_x(L - x_coo[i]);
 			lb = lower_bound(time);  // depends on x!
 			ub = std::max(6.0, lb + 1);
 			inte_formula.integ_err(f, lb, ub, res2, err);
 
-			lin_solution[i].first = x2[i];
+			lin_solution[i].first = x_coo[i];
 			lin_solution[i].second = bdry(0.0) + res1 + res2;
 		}
       delete o2scl::err_hnd;
