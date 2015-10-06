@@ -121,31 +121,32 @@ int main(int argc, char** argv) {
 
 			// Numerical models launch as parallel jobs.
 			std::vector<std::future<int>> rets;  // execution times (in secs) for numerical models (parallel jobs)
-			int anC = 0, anV=0, anN=0, an1=0; // execution times (in secs) for analytic model (serial)
+//			int anC = 0, anV=0, anN=0, an1=0; // execution times (in secs) for analytic model (serial)
 			for(unsigned int i = 0; i < params.size; ++i){
-				if(params.simulation[i] && i != Params::analytic_const
-				                        && i != Params::analytic_new
-				                        && i != Params::analytic_new1
-						                && i != Params::analytic_var)
+//				if(params.simulation[i] && i != Params::analytic_const
+//				                        && i != Params::analytic_new
+//				                        && i != Params::analytic_new1
+//						                && i != Params::analytic_var)
+				if(params.simulation[i])
 				{
 				   params.model = static_cast<Params::Model>(i);
 				   std::cout << "Model " << i << " launched.\n";
     			   rets.push_back(std::async(std::launch::async, driver<GV, Params>, gv, params));
 				}
 			}
-			// Analytic jobs launch sequentially.
-			for(unsigned int i = 0; i < params.size; ++i){
-			    if(params.simulation[i] && (i == Params::analytic_const || i == Params::analytic_var
-			    		                   || i == Params::analytic_new || i == Params::analytic_new1)){
-				    params.model = static_cast<Params::Model>(i);
-				    std::cout << "Solving " << params.simulation_names[i] << " sequentially.\n";
-			    	int a = driver(gv, params);
-			    	if(i == Params::analytic_const) anC = a;
-			    	else if(i == Params::analytic_new) anN = a;
-			    	else if(i == Params::analytic_new1) an1 = a;
-			    	else anV = a;
-			    }
-			}
+//			// Analytic jobs launch sequentially.
+//			for(unsigned int i = 0; i < params.size; ++i){
+//			    if(params.simulation[i] && (i == Params::analytic_const || i == Params::analytic_var
+//			    		                   || i == Params::analytic_new || i == Params::analytic_new1)){
+//				    params.model = static_cast<Params::Model>(i);
+//				    std::cout << "Solving " << params.simulation_names[i] << " sequentially.\n";
+//			    	int a = driver(gv, params);
+//			    	if(i == Params::analytic_const) anC = a;
+//			    	else if(i == Params::analytic_new) anN = a;
+//			    	else if(i == Params::analytic_new1) an1 = a;
+//			    	else anV = a;
+//			    }
+//			}
 			// wait for all threads to complete before calling gnu_compare_c().
 			std::cout << "Waiting...\n";
 			for (unsigned int i = 0; i < rets.size(); ++i) {
@@ -154,27 +155,29 @@ int main(int argc, char** argv) {
 			// print execution times
 			unsigned int ii = -1;
 			for (unsigned int i = 0; i < params.size; ++i) {
-				if (params.simulation[i] && i != Params::analytic_const
-		                                 && i != Params::analytic_new
-		                                 && i != Params::analytic_new1
-		                                 && i != Params::analytic_var) {
+//				if (params.simulation[i] && i != Params::analytic_const
+//		                                 && i != Params::analytic_new
+//		                                 && i != Params::analytic_new1
+//		                                 && i != Params::analytic_var)
+				if (params.simulation[i])
+				{
 					ii++;
 					std::cout << " Time for " << params.simulation_names[i]
 							<< " is = " << rets[ii].get() << " sec\n";
 				}
 			}
-			if(params.simulation[Params::analytic_const])
-				std::cout << " Time for " << params.simulation_names[Params::analytic_const]
-											<< " is = " << anC << " sec\n";
-			if(params.simulation[Params::analytic_var])
-				std::cout << " Time for " << params.simulation_names[Params::analytic_var]
-											<< " is = " << anV << " sec\n";
-			if(params.simulation[Params::analytic_new])
-				std::cout << " Time for " << params.simulation_names[Params::analytic_new]
-											<< " is = " << anN << " sec\n";
-			if(params.simulation[Params::analytic_new1])
-				std::cout << " Time for " << params.simulation_names[Params::analytic_new1]
-											<< " is = " << an1 << " sec\n";
+//			if(params.simulation[Params::analytic_const])
+//				std::cout << " Time for " << params.simulation_names[Params::analytic_const]
+//											<< " is = " << anC << " sec\n";
+//			if(params.simulation[Params::analytic_var])
+//				std::cout << " Time for " << params.simulation_names[Params::analytic_var]
+//											<< " is = " << anV << " sec\n";
+//			if(params.simulation[Params::analytic_new])
+//				std::cout << " Time for " << params.simulation_names[Params::analytic_new]
+//											<< " is = " << anN << " sec\n";
+//			if(params.simulation[Params::analytic_new1])
+//				std::cout << " Time for " << params.simulation_names[Params::analytic_new1]
+//											<< " is = " << an1 << " sec\n";
 
 
 			// Gnuplot control file for displaying the solution output is given only in 1D

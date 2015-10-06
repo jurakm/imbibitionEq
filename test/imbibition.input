@@ -1,10 +1,10 @@
-Permeability = 5.4E-5
-Porosity = 1.0
+Permeability = 5.4E-1
+Porosity = 1
 Delta = 1
 AlphaCutOffMultiplier =  1.0E-3
 Theta = 0.75                      # Theta \in (0,1] ; Theta = 1 --> mean value over whole interval 
-DtBdry = 0.4                      #     
-Model = NCVABEF
+DtBdry = 0.8                 #     
+Model = FE
 #Model = constant_linear [C]
 #Model = variable_linear [V]
 #Model = nonlinear       [N]
@@ -23,7 +23,7 @@ FluxFunction = 1   # 0 = artificial
                    # 1 = van Genuchten
 [Grid]
 Length = 1.0  # Length of the side of the grid
-NPoints  = 1000 #  No of points in each coordinate direction 
+NPoints  = 10000 #  No of points in each coordinate direction 
 Q = 0.3  # portion of the mesh points used to resolve BL
 Sigma = 1 # Grading of the mesh inside the layer (?)
 
@@ -56,11 +56,11 @@ TXT = 1   # 0=false, 1=true
 
 [Fluids]
 WettingViscosity =  1         # cP
-NonWettingViscosity = 0.8     # cP
+NonWettingViscosity = 2     # cP
 
 [Matrix-VanGenuchten]
-Alpha = 0.5           # 1/bar 
+Alpha = 1.0          # 1/bar 
 N    = 2.0
 [Fracture-VanGenuchten]
-Alpha = 0.5           # 1/bar 
+Alpha = 5.0           # 1/bar 
 N    = 2.0

@@ -10,8 +10,10 @@
 #include <vector>
 #include <stdexcept>
 
-/** MGF = Mesh generating function. Generate 1D mesh on interval [0,L]
- * adapted to a baoundary layer (BL) on left or both sides of [0,L].
+/** \brief Mesh generating function.
+ *
+ * Generate 1D mesh on interval [0,L]
+ * adapted to a boundary layer (BL) on left side or on the both sides of [0,L].
  * Lecture Notes in Mathematics 1985
  * Torsten Linß
  *

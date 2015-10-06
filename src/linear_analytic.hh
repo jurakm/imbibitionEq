@@ -70,13 +70,14 @@ double interpolate(boost::numeric::ublas::vector<double> const & X,
 	return y;
 }
 
-/**
+/** \brief Class for calculation of analytic solution in 1D.
+ *
  * Class holding the integrand for calculation of the integral
  * (boundary layer function)
  *   \f[
  *   Z(\xi,t) = (2/\sqrt{\pi}) \int_{x/(2\delta\sqrt{\tau(t)})}^\infty ((g\circ t)(\tau(t)-\xi^2/(4 v^2)) -g(0))exp(-v^2) dv.
  *   \f]
- *   where \f$\xi\f$ is  a boundary value variable, that is, at $x=0$
+ *   where \f$\xi\f$ is  a boundary value variable, that is, at \f$x=0\f$
  *   \f[
  *   \xi = x/\overline{\delta},\quad \overline{\delta} = \delta \sqrt{\frac{k_m\overline{\alpha}_m}{\Phi_m}}.
  *   \f]
@@ -87,7 +88,7 @@ double interpolate(boost::numeric::ublas::vector<double> const & X,
  * \f]
  * Different cases:
  *   Constant approximation: \f$ a(t) = 1,\; \tau(t) = t. \f$
- *   Variable approximation: \f$ a(t) = \alpha(g(t))/mean_alpha,\; \tau(t) = \int_0^t a(u)du. \f$
+ *   Variable approximation: \f$ a(t) = \alpha(g(t))/\alpha_m,\; \tau(t) = \int_0^t a(u)du. \f$
  */
 template <typename Params>
 class Integrand{
@@ -159,7 +160,7 @@ class Integrand{
     	        val = ( params_.beta( Yt ) - params_.beta( Yt - dS*theta) )/ (dS*theta);
     		}
     		else
-    			val = params_.alpha( params_.bdry(t) );
+    			val = params_.alpha(Yt);
 
     		val /= params_.mean_alpha;
     	}
@@ -167,11 +168,11 @@ class Integrand{
     		const double Yt = params_.bdry(t);
     		const double Yt0 = (t>dt_bdry) ? params_.bdry(t - dt_bdry) : params_.bdry(0.0);
     		const double dS = Yt - Yt0;
-    		if(std::abs(dS*theta) > TOL){
+    		if(std::abs(dS) > TOL){
     	        val = ( params_.beta( Yt ) - params_.beta( Yt0) )/ dS;
     		}
     		else
-    			val = params_.alpha( params_.bdry(t) );
+    			val = params_.alpha(Yt);
 
     		val /= params_.mean_alpha;
     	}
@@ -278,8 +279,9 @@ void Integrand<Params>::integrate_alpha_bdry(double tend){
 		// there is no need for integration -- this situation is possibly an error.
 		return;
 	}
-	auto tmp = o2scl::err_hnd;
-	o2scl::err_hnd =  new o2scl::err_hnd_cpp();
+//	auto tmp = o2scl::err_hnd; -- do not return old handler
+	auto new_err_hnd = new o2scl::err_hnd_cpp();
+	o2scl::err_hnd =  new_err_hnd;
 	o2scl::funct11 f = std::bind(std::mem_fn<double(double)const>(&Integrand<Params>::a_g),
 	    		                 this, std::placeholders::_1);
 
@@ -302,8 +304,9 @@ void Integrand<Params>::integrate_alpha_bdry(double tend){
       	time_[last_time_index_] = time;
       	tau_time_[last_time_index_] = integr + res;
 	}
-	delete o2scl::err_hnd;
-	o2scl::err_hnd = tmp;
+
+//	o2scl::err_hnd = tmp;  -- no need. Poses a problem in parallel
+//	delete new_err_hnd;
 }
 
 // just for debugging
@@ -325,8 +328,9 @@ void Integrand<Params>::calculate_flux(){
 
       o2scl::funct11 fprim = std::bind(std::mem_fn<double(double,double)>(&Integrand<Params>::dg_dt_shifted),
     		                           this, std::placeholders::_1, std::cref(t));
-      auto tmp = o2scl::err_hnd;
-      o2scl::err_hnd =  new o2scl::err_hnd_cpp();
+//     auto tmp = o2scl::err_hnd; -- we do not return old handler
+      auto new_err_hnd =  new o2scl::err_hnd_cpp();
+      o2scl::err_hnd = new_err_hnd;
 //      o2scl::inte_qag_gsl<> inte_formula;
       o2scl::inte_adapt_cern<o2scl::funct11, 2000> inte_formula;
       inte_formula.tol_rel = 1.0e-5;
@@ -347,8 +351,9 @@ void Integrand<Params>::calculate_flux(){
     //    std::cout << "err = " << err << "\n";
          t += dt;
       }
-      delete o2scl::err_hnd;
-      o2scl::err_hnd = tmp;
+
+//      o2scl::err_hnd = tmp;
+//      delete new_err_hnd;
 
       return;
 }
@@ -373,8 +378,9 @@ void Integrand<Params>::calculate_solution(double time) {
 			this, std::placeholders::_1, std::cref(time));
 //	  o2scl::inte_qag_gsl<> inte_formula;
     o2scl::inte_adapt_cern<o2scl::funct11, 2000> inte_formula;
-      auto tmp = o2scl::err_hnd;
-      o2scl::err_hnd =  new o2scl::err_hnd_cpp();
+//    auto tmp = o2scl::err_hnd;
+    auto new_err_hnd = new o2scl::err_hnd_cpp();
+    o2scl::err_hnd =  new_err_hnd;
 
 	double lb, ub, res1, res2, err;
 	if (time == 0.0)
@@ -399,8 +405,9 @@ void Integrand<Params>::calculate_solution(double time) {
 			lin_solution[i].first = x_coo[i];
 			lin_solution[i].second = bdry(0.0) + res1 + res2;
 		}
-      delete o2scl::err_hnd;
-      o2scl::err_hnd = tmp;
+
+//    o2scl::err_hnd = tmp;
+//    delete new_err_hnd;
 	return;
 }
 
@@ -414,7 +421,7 @@ void Integrand<Params>::print_solution(std::ostream & out){
 // compilation
 //  g++ -std=c++11 -g linear_analytic.cc  -o analytic /usr/local/lib/libo2scl.a -lgsl -lblas
 template<typename Params>
-int lin_analytic(Params params) {
+int lin_analytic_driver(Params params) {
 	auto start = std::chrono::system_clock::now();
 	Integrand<Params> a(params);
 
