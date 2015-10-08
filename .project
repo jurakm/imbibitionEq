@@ -24,4 +24,11 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>src/tableXY.hh</name>
+			<type>1</type>
+			<location>/home/jurak/myprogs/PDELab/Optim/NewImbibDir/imbibitionEq/src/tableXY.hh</location>
+		</link>
+	</linkedResources>
 </projectDescription>

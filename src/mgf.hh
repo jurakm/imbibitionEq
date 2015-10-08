@@ -101,7 +101,6 @@ class MGF{
         return;
     }
 
-
   private:
     // Calculation of tau -- the end of BL part of the grid.
      void find_end_of_interval(){

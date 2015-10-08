@@ -4,7 +4,7 @@ Delta = 1
 AlphaCutOffMultiplier =  1.0E-3
 Theta = 0.75                      # Theta \in (0,1] ; Theta = 1 --> mean value over whole interval 
 DtBdry = 0.8                 #     
-Model = FE
+Model = BEAN
 #Model = constant_linear [C]
 #Model = variable_linear [V]
 #Model = nonlinear       [N]

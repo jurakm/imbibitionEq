@@ -84,8 +84,8 @@ public:
     /** Check the ordering of data. Return true if o.k and false otherwise. */
     bool check_order() const{
     	for(unsigned int i = 0; i < end_-1; ++i){
-    		if(x_[i] > x_[i+1]) return false;
-    		if(y_[i] > y_[i+1]) return false;
+    		if(x_[i] > x_[i+1]){std::cerr << i << " " << x_[i] << std::endl; return false;}
+    		if(y_[i] > y_[i+1]){std::cerr << i << " " << y_[i] << std::endl; return false;}
     	}
     	return true;
     }

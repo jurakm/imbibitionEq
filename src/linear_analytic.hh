@@ -35,73 +35,75 @@ double find_upper_bound(double TOL){
   return M;
 }
 
-// Calculate y=Y(x) by linear interpolation.
-//double interpolate(boost::numeric::ublas::vector<double> const & X,
-//		           boost::numeric::ublas::vector<double> const & Y, double x,
-//		           unsigned int last_index) {
-//	const double TOL = 1E-8;
-//	double x_max = X[last_index];
-//	if (x > x_max + TOL) {
-//		std::cerr << "x= " << x << ", x_max = " << x_max << ", idx = " << last_index << std::endl;
-//		throw std::runtime_error("interpolate: value out of bounds, error 541.");
-//	}
-//	// Small negative numbers are ossible.
-////	if(x < 0.0 and -x < TOL) x = 0.0;
-//	auto it = std::upper_bound(X.begin(), X.begin() + last_index + 1, x);
-//	auto index = it - X.begin(); // this is upper bound
-//	if (index == 0){
-////		std::cout << "x = " << x << ", x_max = " << x_max << ", idx = " << last_index << std::endl;
-////		int bbb; std::cin >> bbb;
-////		return x;
-//		throw std::logic_error("Internal error 542.");
-//	}
-//	if (index > last_index) {
-//		// There is no bigger element, return largest value.
-//		// This can happen only on the last element.
-//		assert(index == last_index + 1);
-//		return Y[index - 1];
-//	}
-//	const double y1 = Y[index - 1];
-//	const double y2 = Y[index];
-//	const double x1 = X[index - 1];
-//	const double x2 = X[index];
-//	double y = y1;
-//	if (std::abs(x2 - x1) >= TOL)
-//		y += (x - x1) * (y2 - y1) / (x2 - x1);
-//	return y;
-//}
 
 
 
 
 
 
-/** \brief Class for calculation of analytic solution in 1D.
+
+/** \brief Class for calculation of analytic solution of linearized imbibition equation  in 1D.
  *
- * Class holding the integrand for calculation of the integral
- * (boundary layer function)
+ * If the fracture thickness \f$\delta\f$ is small the solution of linearized imbibition equation
+ * has a boundary layer type and can be calculated explicitly  in 1D, neglecting  exponentially
+ * small terms.
+ *
+ * In this class we calculate solution of 1D linearized imbibition equation and
+ * associated matrix-fracture flux (which is our main interest). There are several ways to
+ * linearize the nonlinear imbibition problem:
+ *  \f[
+   \Phi_m \frac{\partial S}{\partial t} - \delta^2 k_m \Delta \beta_m(S) = 0 \quad {\rm in }\;  Y,\; t>0
+   \f]
+   \f[  S = g(t)\quad{\rm on } \;\partial Y,\; t > 0 \f]
+   \f[  S = g(0)\quad {\rm on}\; Y,\; t = 0, \f]
+ * where \f$Y = (0,1)^d\f$.
+ *
+ * Note. We assume fixed domain \f$Y\f$ (independent of \f$\delta\f$)
+ * since \f$\delta\f$ is small and we can replace  \f$Y^\delta = (\delta/2,1-\delta/2)^d\f$
+ * by \f$(0,1)^d\f$.
+ *
+ * All approximations are of the form
+ * \f[
+       \Phi_m \frac{\partial S}{\partial t} - \delta^2 k_m a(t)\Delta S = 0 \quad {\rm in }\;  Y,\; t>0
+   \f]
+   \f[  S = g(t)\quad{\rm on } \;\partial Y,\; t > 0 \f]
+   \f[  S = g(0)\quad {\rm on}\; Y,\; t = 0, \f]
+ * where for \f$a(t)\f$ we have following possibilities:
+ *       - Constant approximation [anac]: \f$ a(t) = \bar\alpha_m,\; \tau(t) = t. \f$
+ *       - Variable approximation [anav]: \f$ a(t) = \alpha_m(g(t)),\; \tau(t) = \int_0^t a(u)du. \f$
+ *       - Variable approximation [ana_n]:
+ *   \f$ a(t) = (\beta_m(g(t))-\beta_m(g(t) -\theta (g(t) -g(0)))/[\theta (g(t)-g(0))],\;
+ *        \tau(t) = \int_0^t a(u)du. \f$
+ *
+ * where \f$\alpha_m(S) = \beta_m'(S)\f$ and  \f$\bar\alpha_m = \int_0^1 \alpha_m(s)\, ds\f$.
+ * The function \f$a(t) \f$ is eliminated by passing to a new time variable
+ * \f$\tau(t) = \int_0^t a(u)du\f$ (except in the first case where \f$a(t) =1\f$).
+
+ * The solution of the linearized problem has the form
+ * \f[    S \approx g(0) +   Z^0(\xi,t) +  Z^0(\eta,t) ,\quad
+ *         \xi = {x}/{\bar\delta},\; \eta = {1-x}/{\bar\delta},\;
+ *         \bar\delta = \delta \sqrt{{k_m \bar\alpha_m}/{\Phi_m}}.
+ * \f]
+ * The boundary layer function is given by the formula:
  *   \f[
- *   Z(\xi,t) = (2/\sqrt{\pi}) \int_{x/(2\delta\sqrt{\tau(t)})}^\infty ((g\circ t)(\tau(t)-\xi^2/(4 v^2)) -g(0))exp(-v^2) dv.
+ *   Z(\xi,t) = (2/\sqrt{\pi}) \int_{x/(2\delta\sqrt{\tau(t)})}^\infty
+ *   ((g\circ t)(\tau(t)-\xi^2/(4 v^2)) -g(0)) \exp(-v^2) dv.
  *   \f]
- *   where \f$\xi\f$ is  a boundary value variable, that is, at \f$x=0\f$
- *   \f[
- *   \xi = x/\overline{\delta},\quad \overline{\delta} = \delta \sqrt{\frac{k_m\overline{\alpha}_m}{\Phi_m}}.
- *   \f]
- * For non wetting phase flux \f$Q_n\f$ we have the formula
+ * The non wetting phase flux \f$Q_n\f$ is given by the formula
  * \f[
  *     Q_n = \frac{4}{\sqrt{\pi}}\overline{\delta}\Phi_m a(t)
  *                         \int_0^{\sqrt{\tau(t)}} (g\circ t)'(\tau(t)-\lambda^2)\, d\lambda.
  * \f]
- * Different cases:
- *   Constant approximation: \f$ a(t) = 1,\; \tau(t) = t. \f$
- *   Variable approximation: \f$ a(t) = \alpha(g(t))/\alpha_m,\; \tau(t) = \int_0^t a(u)du. \f$
+ *
+ *
+ *
  */
 template <typename Params>
 class AnalyticSolution{
   public:
 	/// Constructor.
     AnalyticSolution(Params const & params);
-    /** Calculate the flux in the case of constant linearisation. The result is
+    /** Calculate the flux in the case of constant linearization. The result is
      *  given on an equidistant time mesh and is stored in lin_flux variable.
      */
     void calculate_flux();
@@ -161,18 +163,19 @@ class AnalyticSolution{
     //   	std::cout << t << " " << val << "\n";
         return val;
     }
-    /** Scaled composition alpha( g(t) ). */
+    /** Linearized diffusivity coefficient. For different models we have
+     * different functions. They are all divided by the mean value of \f$\alpha(S)\f$.
+     *  */
     double a_g(double t) const {
     	static const double TOL = 1.0e-5;
     	//static const double bs0 = params_.beta( params_.bdry(0.0) );
-    	//  najbolji rezultati su sa 0.75.
     	double val = 1.0;
     	if(model_ == Params::analytic_const)
     		val = 1.0;
     	else if(model_ == Params::analytic_var)
     	   val = params_.alpha( params_.bdry(t) )/params_.mean_alpha;
     	else if(model_ == Params::analytic_new){
-    		// 0.5 daje preveliki flux, 1 daje premali.
+    		// we have the best results with theta = 0.75.
     		const double Yt = params_.bdry(t);
     		const double dS = Yt - params_.bdry(0.0);
     		if(std::abs(dS*theta) > TOL){
@@ -213,9 +216,8 @@ class AnalyticSolution{
        	return val;
        }
 
-    /** Calculate new entry in  new_time_field by calculating
-     * \f[ \int_{t_0}^t \alpha_m( g(s)) ds,\f]
-     * where \f$t_0\f$ is given by last_time_index_.
+    /** Calculate a table (tau_table) of values (t, tau(t)) where
+     * \f[ tau(t) = \int_{0}^t \alpha_m( g(s)) ds.\f]
      */
     void integrate_alpha_bdry(double t);
 
@@ -236,17 +238,9 @@ class AnalyticSolution{
     std::vector<std::pair<double,double>> lin_flux_beta;
     /** Linear constant solution; pairs (x, S_w(x,t)) at fixed time t.  */
     std::vector<std::pair<double,double>> lin_solution;
-    /** Last index of calculated time in new_time_field. */
-//    unsigned int last_time_index_ = 0;
-//    const unsigned int default_table_size_ = 10000;
-    /** time_ holds time  t. */
-//    boost::numeric::ublas::vector<double> time_;
-    /** tau_time_ holds tau(t): tau(t) = int_0^t alpha(g(s))ds.   */
-//    boost::numeric::ublas::vector<double> tau_time_;
-
     /** x-coordinates for the solution. */
 	std::vector<double> x_coo;
-
+    /** Table of tau(t). */
 	TableXY<boost::numeric::ublas::vector<double> > tau_table;
 };
 
@@ -316,13 +310,9 @@ double AnalyticSolution<Params>::inv_tau(double tau) const{
 
 template <typename Params>
 void AnalyticSolution<Params>::integrate_alpha_bdry(double tend){
-//	unsigned int old_last_index_time = last_time_index_;
-//	double t_inf =  time_[last_time_index_];
-//	double integr=  tau_time_[last_time_index_];
-
-
+    // we expect that only (0,0) is pushed in the table
 	double t_inf  = tau_table.get_last_x();
-	double integr = tau_table.get_last_y();
+	assert(tau_table.last() == 0);
 
 	if(t_inf >= tend){
 		std::cerr << "Integrand<Params>::integrate_alpha_bdry(double t)  -- t_inf >= t!\n";
@@ -335,41 +325,35 @@ void AnalyticSolution<Params>::integrate_alpha_bdry(double tend){
 	o2scl::funct11 f = std::bind(std::mem_fn<double(double)const>(&AnalyticSolution<Params>::a_g),
 	    		                 this, std::placeholders::_1);
 
-    o2scl::inte_adapt_cern<o2scl::funct11, 2000> inte_formula;
+    o2scl::inte_adapt_cern<o2scl::funct11, 20> inte_formula;
 //	o2scl::inte_qag_gsl<> inte_formula;
 	inte_formula.tol_abs = inte_formula.tol_rel = 1e-5;
 	double res=0.0, err=0.0;
+//	Decomposes given floating point value x into integral and fractional parts,
+//	each having the same type and sign as x. The integral part (in floating-point format)
+//	is stored in the object pointed to by the second argument.
 	double intpart;
 	double fractpart = std::modf((tend - t_inf)/dt_table_, &intpart);
 	if(fractpart >= 0.3) intpart++;
 
+	double lower_time = t_inf;
+	double time = t_inf;
+	const double dt = (tend-t_inf)/intpart;
 	for(unsigned int i=0; i<intpart; ++i){
-		double time = t_inf + (i+1)*(tend-t_inf)/intpart;
-      	inte_formula.integ_err(f,t_inf,time,res,err);
-//     	last_time_index_++;
-//     	if(last_time_index_ >= time_.size()){
-//     		time_.resize(2*last_time_index_);
-//     		tau_time_.resize(2*last_time_index_);
-//     	}
-//      	time_[last_time_index_] = time;
-//      	tau_time_[last_time_index_] = integr + res;
-
+		double integr = tau_table.get_last_y();
+		lower_time = time;
+		time += dt;
+		inte_formula.integ_err(f, lower_time, time, res, err);
       	tau_table.push_back(time, integr + res);
 	}
-    if( !tau_table.check_order() )
+    if( !tau_table.check_order() ){
+    	print_tau(std::cerr);
     	throw std::runtime_error("AnalyticSolution<Params>::integrate_alpha_bdry: ordering incorrect!");
+    }
 //	o2scl::err_hnd = tmp;  -- no need. Poses a problem in parallel
 //	delete new_err_hnd;
 }
 
-// just for debugging
-//template <typename Params>
-//void AnalyticSolution<Params>::print_tau(std::ostream & out){
-//	out << "#  time    time    tau(time)      tau(time)\n";
-//	for(unsigned int i = 0; i <= last_time_index_; ++i){
-//		out << time_[i] << " " << inv_tau(tau_time_[i]) << " " << tau_time_[i] << "  "<< tau(time_[i]) << "\n";
-//	}
-//}
 // just for debugging
 template <typename Params>
 void AnalyticSolution<Params>::print_tau(std::ostream & out){
@@ -460,21 +444,20 @@ void AnalyticSolution<Params>::calculate_flux_beta(){
       return;
 }
 
-
-
-
 template <typename Params>
 void AnalyticSolution<Params>::print_flux(std::ostream & out){
 	// Note. Flux must be calculated first.
     for(unsigned int i = 0; i < lin_flux.size(); ++i)
-    	out << lin_flux[i].first << "  " << lin_flux[i].second <<"\n";
+    	out << std::setw(16) << std::setprecision(10) << lin_flux[i].first << "  "
+		    << std::setw(16) << std::setprecision(10) << lin_flux[i].second <<"\n";
 }
 
 template <typename Params>
 void AnalyticSolution<Params>::print_flux_beta(std::ostream & out){
 	// Note. Flux must be calculated first.
     for(unsigned int i = 0; i < lin_flux_beta.size(); ++i)
-    	out << lin_flux_beta[i].first << "  " << lin_flux_beta[i].second <<"\n";
+    	out << std::setw(16) << std::setprecision(10) << lin_flux_beta[i].first << "  "
+		    << std::setw(16) << std::setprecision(10) << lin_flux_beta[i].second <<"\n";
 }
 
 template<typename Params>
@@ -543,13 +526,6 @@ int lin_analytic_driver(Params params) {
     std::ofstream out_tau(tau);
     a.print_tau(out_tau);
     out_tau.close();
-//    {
-//    	    const std::string base( params.str_sname + params.simulation_names[a.model()] );
-//    	    const std::string tau = base + "-tau1.txt";
-//    	    std::ofstream out_tau(tau);
-//    	    a.print_tau1(out_tau);
-//    	    out_tau.close();
-//    }
 
 	a.calculate_flux();
 	// Output flux -- one value for each time instant.
@@ -557,9 +533,10 @@ int lin_analytic_driver(Params params) {
 	std::ofstream out_flux(flux);
 	a.print_flux(out_flux);
 	out_flux.close();
+
 	a.calculate_flux_beta();
 	const std::string flux_beta( base + "-flux-beta.txt");
-    std::ofstream out_flux_beta(flux);
+    std::ofstream out_flux_beta(flux_beta);
 	a.print_flux_beta(out_flux_beta);
 	out_flux_beta.close();
 

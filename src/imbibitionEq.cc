@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
 			MGF<Params> mgf(params);  // mesh generating function
 			mgf.double_side_interval(line);
 			// Write down the grid points
-			std::ofstream grid_pts("grid_pts.txt");
+			std::ofstream grid_pts(params.date_and_time+"/grid_pts.txt");
 			for (auto & x : line)
 				grid_pts << x << "\n";
 			grid_pts.close();
