@@ -16,7 +16,7 @@
 #include "tableXY.hh"
 
 
-// TODO Put this class in use -- replase Table<>
+// TODO Put this class in use -- replace Table<>
 template <typename FunctionClass>
 class TabularFunction : private TableXY<std::vector<double> >{
 public:

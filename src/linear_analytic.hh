@@ -167,37 +167,8 @@ class AnalyticSolution{
      * different functions. They are all divided by the mean value of \f$\alpha(S)\f$.
      *  */
     double a_g(double t) const {
-    	static const double TOL = 1.0e-5;
-    	//static const double bs0 = params_.beta( params_.bdry(0.0) );
-    	double val = 1.0;
-    	if(model_ == Params::analytic_const)
-    		val = 1.0;
-    	else if(model_ == Params::analytic_var)
-    	   val = params_.alpha( params_.bdry(t) )/params_.mean_alpha;
-    	else if(model_ == Params::analytic_new){
-    		// we have the best results with theta = 0.75.
-    		const double Yt = params_.bdry(t);
-    		const double dS = Yt - params_.bdry(0.0);
-    		if(std::abs(dS*theta) > TOL){
-    	        val = ( params_.beta( Yt ) - params_.beta( Yt - dS*theta) )/ (dS*theta);
-    		}
-    		else
-    			val = params_.alpha(Yt);
-
-    		val /= params_.mean_alpha;
-    	}
-    	else if(model_ == Params::analytic_new1){
-    		const double Yt = params_.bdry(t);
-    		const double Yt0 = (t>dt_bdry) ? params_.bdry(t - dt_bdry) : params_.bdry(0.0);
-    		const double dS = Yt - Yt0;
-    		if(std::abs(dS) > TOL){
-    	        val = ( params_.beta( Yt ) - params_.beta( Yt0) )/ dS;
-    		}
-    		else
-    			val = params_.alpha(Yt);
-
-    		val /= params_.mean_alpha;
-    	}
+    	double val = params_.a_g(t);
+    	val /= params_.mean_alpha;
     	return val;
     }
     /** Derivative of the boundary value function.  */

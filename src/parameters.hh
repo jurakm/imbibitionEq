@@ -370,19 +370,49 @@ struct Params{
 	   return vgImbFunMatrix.sw( vgImbFunFracture.pc( s ) );
    }
 
-   /// Saturation boundary condition on the matrix block boundary.
-   double bdry(double t) const {
-	   if(flux_funct_index == 0) return ptfun[function_index](t);
-	   return bdry_transfer( ptfun[function_index](t) );
-   }
+	/// Saturation boundary condition on the matrix block boundary.
+	double bdry(double t) const {
+		if (flux_funct_index == 0)
+			return ptfun[function_index](t);
+		return bdry_transfer(ptfun[function_index](t));
+	}
 
+	/** Linearized diffusivity coefficient. For different models we have
+	 *  different functions.
+	 *  */
+	double a_g(double t) const {
+		static const double TOL = 1.0e-5;
+		double val = 0.0;
+		if (model == Params::analytic_const)
+			val = mean_alpha;
+		else if (model == Params::analytic_var)
+			val = alpha(bdry(t));
+		else if (model == Params::analytic_new) {
+			// we have the best results with theta = 0.75.
+			const double Yt = bdry(t);
+			const double dS = Yt - bdry(0.0);
+			if (std::abs(dS * theta) > TOL) {
+				val = (beta(Yt) - beta(Yt - dS * theta)) / (dS * theta);
+			} else
+				val = alpha(Yt);
+		} else if (model == Params::analytic_new1) {
+			const double Yt = bdry(t);
+			const double Yt0 = (t > dt_bdry) ? bdry(t - dt_bdry) : bdry(0.0);
+			const double dS = Yt - Yt0;
+			if (std::abs(dS) > TOL) {
+				val = (beta(Yt) - beta(Yt0)) / dS;
+			} else
+				val = alpha(Yt);
+		}
+		return val;
+	}
 //	const ImbibitionFunctions * const imbib_fun() const {
 //		if (flux_funct_index == 0)
 //			return &aImbFun;
 //		return &vgImbFunMatrix;
 //	}
-   // Constants
-   double a = 0.0;       ///< amplitude of the artificial alpha function
+	// Constants
+	double a = 0.0;       ///< amplitude of the artificial alpha function
    double mean_alpha = 0.0;  ///<   \f$\int_0^1 \alpha(s) ds\f$
    // Porous media
    double k = 0.0;       ///< permeability
