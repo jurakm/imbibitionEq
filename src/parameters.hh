@@ -218,8 +218,8 @@ void gnu_compare_c(Params const & params){
 struct Params{
 	/// Constants describing different imbibition models.
 	enum Model{
-	  new_nonlinear=0, nonlinear, constant_linear, variable_linear, analytic_const,
-	  analytic_var, analytic_new, analytic_new1, size
+	  new_nonlinear=0, nonlinear, constant_linear, variable_linear, variable_new,
+	  analytic_const, analytic_var, analytic_new, analytic_new1, size
 	};
  /**
   * Read all parameters from an input file. It must be called explicitly
@@ -329,6 +329,7 @@ struct Params{
 		simulation_names[nonlinear] = "nlin";
 		simulation_names[constant_linear] = "clin";
 		simulation_names[variable_linear] = "vlin";
+		simulation_names[variable_new] = "vlin_n";
 		simulation_names[analytic_const] = "anac";
 		simulation_names[analytic_var] = "anav";
 		simulation_names[analytic_new] = "ana_n";
@@ -382,12 +383,12 @@ struct Params{
 	 *  */
 	double a_g(double t) const {
 		static const double TOL = 1.0e-5;
-		double val = 0.0;
-		if (model == Params::analytic_const)
+		double val = 1.0; // good value for Params::new_nonlinear -- important.
+		if (model == Params::analytic_const or model == Params::constant_linear)
 			val = mean_alpha;
-		else if (model == Params::analytic_var)
+		else if (model == Params::analytic_var or model == Params::variable_linear)
 			val = alpha(bdry(t));
-		else if (model == Params::analytic_new) {
+		else if (model == Params::analytic_new or model == Params::variable_new) {
 			// we have the best results with theta = 0.75.
 			const double Yt = bdry(t);
 			const double dS = Yt - bdry(0.0);
@@ -461,6 +462,9 @@ private:
 		   case 'v':
 		   case 'V': simulation[variable_linear] = true;
 		             break;
+		   case 'z':
+		   case 'Z': simulation[variable_new] = true;
+		  		   break;
 		   case 'n':
 		   case 'N': simulation[nonlinear] = true;
 		             break;

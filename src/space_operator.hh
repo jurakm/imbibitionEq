@@ -86,13 +86,16 @@ public:
 
 			if (coeff.model == Params::nonlinear)
 				alpha *= coeff.alpha(u);
-			else if (coeff.model == Params::constant_linear)
-				alpha *= coeff.mean_alpha;
-			else if (coeff.model == Params::variable_linear)
-				alpha *= coeff.alpha(coeff.bdry(time_));
-			else {
-				// if new_nonlinear alpha is not changed
-			}
+			else
+				alpha *= coeff.a_g(time_);
+
+//			else if (coeff.model == Params::constant_linear)
+//				alpha *= coeff.mean_alpha;
+//			else if (coeff.model == Params::variable_linear)
+//				alpha *= coeff.alpha(coeff.bdry(time_));
+//			else {
+//				// if new_nonlinear alpha is not changed
+//			}
 			// evaluate gradient of basis functions on reference element
 			std::vector<Jacobian> js(lfsu.size());
 			lfsu.finiteElement().localBasis().evaluateJacobian(it->position(), js);
