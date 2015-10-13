@@ -1,12 +1,12 @@
-Permeability = 5.4E-1
+Permeability = 5.4E-1 
 Porosity = 1
 Delta = 1
-AlphaCutOffMultiplier =  1.0E-3
-Theta = 0.75                      # Theta \in (0,1] ; Theta = 1 --> mean value over whole interval 
+Theta = 0.65                     # Theta \in (0,1] ; Theta = 1 --> mean value over whole interval 
 DtBdry = 0.8                 #     
-Model = BEAN
+Model = CVBEANFZ
 #Model = constant_linear [C]
 #Model = variable_linear [V]
+#Model = variable_new    [Z]
 #Model = nonlinear       [N]
 #Model = new_nonlinear   [M]
 #Model = const analytic  [A]

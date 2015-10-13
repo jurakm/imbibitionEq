@@ -76,13 +76,14 @@ void Integration::print(std::string const & file_name, Params const & params) {
 				<< " "  // time
 				<< std::setw(12) << std::setprecision(6)
 				<< params.poro * volume_values_der[i].second; //  " = d/dt int S"
-//		if (params.model == Params::nonlinear)
-//			out1 << "                 " << std::setw(12) << std::setprecision(6)
-//					<< params.alpha(params.bdry(time)) * kdd
-//							* bdry_values[i].second;
-//		else
+		if (params.model == Params::nonlinear)
+			out1 << "                 " << std::setw(12) << std::setprecision(6)
+					<< params.alpha(params.bdry(time)) * kdd
+							* bdry_values[i].second;
+		else{  // a_g is also good for new_nonlinear
 			out1 << "                 " << std::setw(12) << std::setprecision(6)
 					<< params.a_g(time) * kdd * bdry_values[i].second;
+		}
 //		// "= k delta^2 alpha(g(t)) int bdry grad S .n  "
 //		else if (params.model == Params::new_nonlinear)
 //					out1 << "                 " << std::setw(12) << std::setprecision(6)
