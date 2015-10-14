@@ -32,7 +32,25 @@
 
 namespace aux{
 
-/// Date and time strig that is used as a name of the simulation folder.
+std::string sec_to_string(int sec){
+	std::string res;
+	if(sec < 60) res = std::to_string(sec);
+	else if(sec < 60*60){
+		int s = sec % 60;
+		int m = sec/60;
+		res = std::to_string(m) + " min "+ std::to_string(s) + " sec";
+	}
+	else{
+		int s = sec % 60;
+		int m = sec/60;
+		m = m % 60;
+		int h = m/60;
+		res = std::to_string(h) + " hours " + std::to_string(m) + " min "+ std::to_string(s) + " sec";
+	}
+	return res;
+}
+
+/// Date and time string that is used as a name of the simulation folder.
 std::string date_time(){
     std::time_t t = std::time(NULL);
     char mbstr[128];
@@ -82,7 +100,7 @@ void create_dir(std::string const & dir_name) {
 template <typename Params>
 void gnu_output_solution(Params const & params){
 	if(!params.txtout) return;
-	// count aktive simulations
+	// count active simulations
 	int total_cnt = 0;
 	for(auto x : params.simulation) if(x) total_cnt++;
 
