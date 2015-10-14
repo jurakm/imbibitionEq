@@ -538,52 +538,91 @@ void Params::plot_functions(unsigned int n)
     std::string full_bdry_file_name = dir+"/bdry.txt";
 
     std::ofstream bdry_file (full_bdry_file_name);
-    bdry_file << "#    t        g(t)\n";
+    bdry_file << "#    t          P(g(t))         g(t) \n";
     double dt = tend/n;
        for (unsigned int i = 0; i <= n; ++i)
        {
           	const double ti = i*dt;
       	    bdry_file << std::setw(10) << std::setprecision(8) << ti << "   "
-      	     << std::setw(16) << std::setprecision(12) << bdry(ti)    << "\n";
+      	     << std::setw(16) << std::setprecision(12) << bdry(ti) << "   "
+			 << std::setw(16) << std::setprecision(12) << ptfun[function_index](ti)  << "\n";
        }
        bdry_file.close ();
 
+       // Write gnuplot command file
     std::string file_name_gnu = dir + "/functions.gnu";
     std::ofstream out(file_name_gnu);
-    out << "set xlabel \"S_w\"\n";
-    out << "set key left top\n";
-    out << "#set grid\n";
+    auto tmp2 = aux::min_max(full_pc_file_name, 1);
+    auto tmp3 = aux::min_max(full_pc_file_name, 2);
+    auto max = std::max(tmp2.second, tmp3.second);
+    out << "#set terminal epslatex size 3.5,2.62 color colortext\n";
+    out << "#set terminal epslatex color # linewidth 2\n";
+    out << "#set output \"fun-1-5-2.tex\"\n";
+
+    out << "#set border linewidth 1\n";
+
+    out << "set multiplot layout 2,2\n";
+
     out << "set xrange [0:1]\n";
+    out << "set xtics ('$0$' 0.0, '$.2$' 0.2,'$.4$' 0.4,'$.6$' 0.6,'$.8$' 0.8, '$1$' 1.0) \n";
 
-    //                          collon number -- starts with zero
-    auto tmp1 = aux::min_max(full_file_name, 1);
-    auto tmp2 = aux::min_max(full_file_name, 2);
-    auto tmp3 = aux::min_max(full_file_name, 3);
-    double max = std::max(tmp1.second, tmp2.second);
-    max = std::max(max,tmp3.second);
-
+    out << "set xlabel '$S_w$'\n";
+    out << "set ylabel '$P_c$ [bar]'\n";
     out << "set yrange [0.0:" << max << "]\n";
-    out << "#set terminal postscript eps color solid lw 3\n";
-    out << "#set output \"functions.eps\"\n";
-    out << "   plot " << "\"" << file_name << "\"" << " u 1:2 w l t \"alpha\",\\\n";
-    out << "        " << "\"" << file_name << "\"" << " u 1:3 w l t \"beta\",\\\n";
-    out << "        " << "\"" << file_name << "\"" << " u 1:4 w l t \"transfer\"\n";
+    out << "plot \"pc.txt\" u 1:2 w l title '$P_{c,m}(S_w)$',\\\n";
+    out << "     \"pc.txt\" u 1:3 w l title '$P_{c,m}(S_w)$'\n";
+
+    out << "unset ylabel\n";
+    out << "set key right center\n";
+    out << "#set grid\n";
+    out << "set yrange [0.0:1]\n";
+    out << "plot \"functions.txt\" u 1:2 w l title '$\\alpha_m(S_w)$',\\\n";
+    out << "	 \"functions.txt\" u 1:4 w l title '${\\cal P}(S_w)$'\n";
+
+    out << "set ylabel \"time [days]\"\n";
+    out << "set yrange [0:1.1]\n";
+    out << "set key right bottom\n";
+    out << "plot \"bdry.txt\" u 1:2 w l title '${\\cal P}(S_w^f(t))$',\\\n";
+    out << "     \"bdry.txt\" u 1:3 w l title '$S_w^f(t)$'\n";
+
+    out << "unset multiplot\n";
+
     out << "pause -1\n";
 
-    tmp2 = aux::min_max(full_pc_file_name, 1);
-    tmp3 = aux::min_max(full_pc_file_name, 2);
-    max = std::max(tmp2.second, tmp3.second);
-    out << "set yrange [0.0:" << max << "]\n";
-    out << "   plot " << "\"" << pc_file_name << "\"" << " u 1:2 w l t \"pc matrix\",\\\n";
-    out << "        " << "\"" << pc_file_name << "\"" << " u 1:3 w l t \"pc fracture\"\n";
-    out << "pause -1\n";
-
-    tmp2 = aux::min_max(full_bdry_file_name, 1);
-	max = tmp2.second;
-	out << "set yrange [0.0:" << max << "]\n";
-	out << "   plot " << "\"" << bdry_file_name << "\""
-			<< " u 1:2 w l t \"bdry function\"\n";
-	out << "pause -1\n";
+//    out << "set xlabel \"S_w\"\n";
+//    out << "set key left top\n";
+//    out << "#set grid\n";
+//    out << "set xrange [0:1]\n";
+//
+//    //                          collon number -- starts with zero
+//    auto tmp1 = aux::min_max(full_file_name, 1);
+//    auto tmp2 = aux::min_max(full_file_name, 2);
+//    auto tmp3 = aux::min_max(full_file_name, 3);
+//    double max = std::max(tmp1.second, tmp2.second);
+//    max = std::max(max,tmp3.second);
+//
+//    out << "set yrange [0.0:" << max << "]\n";
+//    out << "#set terminal postscript eps color solid lw 3\n";
+//    out << "#set output \"functions.eps\"\n";
+//    out << "   plot " << "\"" << file_name << "\"" << " u 1:2 w l t \"alpha\",\\\n";
+//    out << "        " << "\"" << file_name << "\"" << " u 1:3 w l t \"beta\",\\\n";
+//    out << "        " << "\"" << file_name << "\"" << " u 1:4 w l t \"transfer\"\n";
+//    out << "pause -1\n";
+//
+//    tmp2 = aux::min_max(full_pc_file_name, 1);
+//    tmp3 = aux::min_max(full_pc_file_name, 2);
+//    max = std::max(tmp2.second, tmp3.second);
+//    out << "set yrange [0.0:" << max << "]\n";
+//    out << "   plot " << "\"" << pc_file_name << "\"" << " u 1:2 w l t \"pc matrix\",\\\n";
+//    out << "        " << "\"" << pc_file_name << "\"" << " u 1:3 w l t \"pc fracture\"\n";
+//    out << "pause -1\n";
+//
+//    tmp2 = aux::min_max(full_bdry_file_name, 1);
+//	max = tmp2.second;
+//	out << "set yrange [0.0:" << max << "]\n";
+//	out << "   plot " << "\"" << bdry_file_name << "\""
+//			<< " u 1:2 w l t \"bdry function\"\n";
+//	out << "pause -1\n";
 	out.close();
 }
 
