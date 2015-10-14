@@ -54,7 +54,7 @@ std::string sec_to_string(int sec){
 std::string date_time(){
     std::time_t t = std::time(NULL);
     char mbstr[128];
-    if (std::strftime(mbstr, sizeof(mbstr), "%F_%T", std::localtime(&t))) return mbstr;
+    if (std::strftime(mbstr, sizeof(mbstr), "%b-%d.%H.%M.%S", std::localtime(&t))) return mbstr;
     throw std::runtime_error("Date and time string error!");
 }
 
@@ -133,74 +133,23 @@ void gnu_output_solution(Params const & params){
 }
 
 
-/// Write gnuplot command file to see the fluxes.
+/// Write gnuplot command file to see the fluxes. Plot certain combination
+/// of fluxes.
+// Params::new_nonlinear,   Params::nonlinear,    Params::constant_linear,
+// Params::variable_linear, Params::variable_new, Params::analytic_const,
+// Params::analytic_var,    Params::analytic_new, Params::analytic_new1
 template <typename Params>
 void gnu_compare_c(Params const & params){
-	int total_cnt = 0;
-	for(auto x : params.simulation) if(x) total_cnt++;
+	params.gnu_compare_c();
+	params.gnu_compare_c({Params::new_nonlinear, Params::nonlinear}, "-nlin");
+	params.gnu_compare_c({Params::nonlinear,
+							  Params::constant_linear,
+							  Params::variable_linear,
+							  Params::variable_new}, "-cmp");
+	params.gnu_compare_c({Params::constant_linear,Params::analytic_const}, "-const");
+	params.gnu_compare_c({Params::analytic_var, Params::analytic_new,
+								  Params::analytic_new1}, "-var");
 
-	const std::string & dir = params.date_and_time;
-	std::string file = dir + "/flux.gnu";
-	std::ofstream out(file);
-	out << "set xlabel \"time\"\n";
-	out << "set ylabel \"Nonwetting source\"\n";
-	out << "set key left center\n";
-	out << "#set grid\n";
-	out << "set xrange [0:1]\n";
-
-	std::pair<double, double> tmp={1.0E100, -1.0E100}; // min, max
-	for (unsigned int i = 0; i < params.size; ++i) {
-		if (params.simulation[i]) {
-	     	std::string name = params.str_sname  + params.simulation_names[i] + "-flux.txt";
-	     	if(i == params.analytic_const || i == params.analytic_var ||
-	     	   i == params.analytic_new ||i == params.analytic_new1){
-	     	    auto tmp1 = min_max(name, 1);
-	     	    if(tmp1.first < tmp.first) tmp.first = tmp1.first;
-	     	    if(tmp1.second > tmp.second) tmp.second = tmp1.second;
-	     	}
-	     	else{
-	     	    auto tmp1 = min_max(name, 1);
-	     	    if(tmp1.first < tmp.first) tmp.first = tmp1.first;
-	     	    if(tmp1.second > tmp.second) tmp.second = tmp1.second;
-	     	    auto tmp2 = min_max(name, 2);
-	     	    if(tmp2.first < tmp.first) tmp.first = tmp2.first;
-	     	    if(tmp2.second > tmp.second) tmp.second = tmp2.second;
-
-	     	}
-		}
-	}
-	double dy = tmp.second - tmp.first;
-	assert(dy >= 0.0);
-	tmp.first -= 0.05*dy;
-	tmp.second += 0.05*dy;
-	out << "set yrange [" << tmp.first <<":" << tmp.second << "]\n";
-	out << "#set terminal postscript eps color solid lw 3\n";
-	out << "#set output \"clin_Q.eps\"\n";
-	int cnt = 0;
-	for (unsigned int i = 0; i < params.size; ++i) {
-     	std::string name = params.simulation_names[i];
-		if (i == 0)
-			out << "   plot ";
-		if (params.simulation[i]) {
-			cnt++;
-			if(i == params.analytic_const || i == params.analytic_var
-					||i == params.analytic_new||i == params.analytic_new1)
-     			out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name;
-			else{
-			   out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name + " vol int\",\\\n";
-			   out << "\"" <<  name << "-flux.txt\" u 1:3 w l t \"" << name + " bdr int";
-			}
-			if (cnt != total_cnt)
-				out << "\",\\\n";
-			else
-				out << "\"\n";
-		}
-	}
-	out << "pause -1\n";
-	out.close();
-	std::cout
-			<< " To see the flux comparison in constant linear case in gnuplot format run:\n  cd "
-			<< params.date_and_time << "; gnuplot flux.gnu\n";
 }
 
 
@@ -339,7 +288,7 @@ struct Params{
 		ptfun.push_back([](double t) {return 0.35 - 0.2* std::sin(2*M_PI*t);});
 		ptfun.push_back(
 				[](double t) {return std::max(std::min(0.5 + 0.51* std::sin(2*M_PI*t), 1.0), 0.0);});
-		ptfun.push_back([](double t) {return 0.3 + std::min(t,0.6);});
+		ptfun.push_back([](double t) {return 0.05 + std::min(t,0.9);});
 
 		for (unsigned int i = 0; i < size; ++i)
 			simulation[i] = false;
@@ -461,6 +410,20 @@ struct Params{
    std::array<bool,size> simulation;  ///< simulations to make (true/false flags)
    std::array<std::string,size> simulation_names; ///< simulation names corresponding to simulations
    int Nout = 0; ///< Output files will be numbered from 0 to Nout (inclusive)
+
+
+   /**
+      * Write gnuplot command file to see the fluxes.
+      * @param show_sim = set of fluxes to show is they were simulated. By default show
+      *                   all simulated fluxes.
+      * @param add_to_name = string to add to a base file name to distinguish different
+      *                      file names. Default (for all simulations) is empty string.
+      */
+     void gnu_compare_c(std::set<int> const & show_sim =
+          {new_nonlinear, nonlinear, constant_linear, variable_linear, variable_new,
+         		 analytic_const, analytic_var, analytic_new, analytic_new1},
+  			 std::string const & add_to_name ="") const;
+
 private:
    std::string default_file_name;
    std::vector<std::function<double(double)>> ptfun;
@@ -507,11 +470,12 @@ private:
    /** Plot all given functions of the model.
     * @param n = number of points in tables. If not given a default is used.
     * */
-   void plot_functions(unsigned int n = 0);
+   void plot_functions(unsigned int n = 0) const;
+
 };
 
 
-void Params::plot_functions(unsigned int n)
+void Params::plot_functions(unsigned int n) const
 {
 	const ImbibitionFunctions * pfun = nullptr;
 	if (flux_funct_index == 0) pfun = &aImbFun;
@@ -604,44 +568,80 @@ void Params::plot_functions(unsigned int n)
     out << "     \"bdry.txt\" u 1:3 w l title '$S_w^f(t)$'\n";
 
     out << "unset multiplot\n";
-
     out << "pause -1\n";
 
-//    out << "set xlabel \"S_w\"\n";
-//    out << "set key left top\n";
-//    out << "#set grid\n";
-//    out << "set xrange [0:1]\n";
-//
-//    //                          collon number -- starts with zero
-//    auto tmp1 = aux::min_max(full_file_name, 1);
-//    auto tmp2 = aux::min_max(full_file_name, 2);
-//    auto tmp3 = aux::min_max(full_file_name, 3);
-//    double max = std::max(tmp1.second, tmp2.second);
-//    max = std::max(max,tmp3.second);
-//
-//    out << "set yrange [0.0:" << max << "]\n";
-//    out << "#set terminal postscript eps color solid lw 3\n";
-//    out << "#set output \"functions.eps\"\n";
-//    out << "   plot " << "\"" << file_name << "\"" << " u 1:2 w l t \"alpha\",\\\n";
-//    out << "        " << "\"" << file_name << "\"" << " u 1:3 w l t \"beta\",\\\n";
-//    out << "        " << "\"" << file_name << "\"" << " u 1:4 w l t \"transfer\"\n";
-//    out << "pause -1\n";
-//
-//    tmp2 = aux::min_max(full_pc_file_name, 1);
-//    tmp3 = aux::min_max(full_pc_file_name, 2);
-//    max = std::max(tmp2.second, tmp3.second);
-//    out << "set yrange [0.0:" << max << "]\n";
-//    out << "   plot " << "\"" << pc_file_name << "\"" << " u 1:2 w l t \"pc matrix\",\\\n";
-//    out << "        " << "\"" << pc_file_name << "\"" << " u 1:3 w l t \"pc fracture\"\n";
-//    out << "pause -1\n";
-//
-//    tmp2 = aux::min_max(full_bdry_file_name, 1);
-//	max = tmp2.second;
-//	out << "set yrange [0.0:" << max << "]\n";
-//	out << "   plot " << "\"" << bdry_file_name << "\""
-//			<< " u 1:2 w l t \"bdry function\"\n";
-//	out << "pause -1\n";
 	out.close();
 }
 
+
+void Params::gnu_compare_c(std::set<int> const & show_sim,
+		                   std::string const & add_to_name) const{
+	// total number of simulations to show
+	int total_cnt = 0;
+	for (unsigned int i = 0; i < size; ++i) if(simulation[i] and show_sim.count(i)) total_cnt++;
+    if(total_cnt == 0) return;
+
+//	const std::string & dir = params.date_and_time;
+	std::string file = "flux"+add_to_name+".gnu";
+	std::ofstream out(date_and_time + "/"+ file);
+	out << "set xlabel \"time\"\n";
+	out << "set ylabel \"Nonwetting source\"\n";
+	out << "set key left center\n";
+	out << "#set grid\n";
+	out << "set xrange [0:1]\n";
+
+	std::pair<double, double> tmp={1.0E100, -1.0E100}; // min, max
+	for (unsigned int i = 0; i < size; ++i) {
+		if (simulation[i]) {
+	     	std::string name = str_sname  + simulation_names[i] + "-flux.txt";
+	     	if(i == analytic_const || i == analytic_var ||
+	     	   i == analytic_new ||i == analytic_new1){
+	     	    auto tmp1 = aux::min_max(name, 1);
+	     	    if(tmp1.first < tmp.first) tmp.first = tmp1.first;
+	     	    if(tmp1.second > tmp.second) tmp.second = tmp1.second;
+	     	}
+	     	else{
+	     	    auto tmp1 = aux::min_max(name, 1);
+	     	    if(tmp1.first < tmp.first) tmp.first = tmp1.first;
+	     	    if(tmp1.second > tmp.second) tmp.second = tmp1.second;
+	     	    auto tmp2 = aux::min_max(name, 2);
+	     	    if(tmp2.first < tmp.first) tmp.first = tmp2.first;
+	     	    if(tmp2.second > tmp.second) tmp.second = tmp2.second;
+
+	     	}
+		}
+	}
+	double dy = tmp.second - tmp.first;
+	assert(dy >= 0.0);
+	tmp.first -= 0.05*dy;
+	tmp.second += 0.05*dy;
+	out << "set yrange [" << tmp.first <<":" << tmp.second << "]\n";
+	out << "#set terminal postscript eps color solid lw 3\n";
+	out << "#set output \"clin_Q.eps\"\n";
+	int cnt = 0;
+	for (unsigned int i = 0; i < size; ++i) {
+     	std::string name = simulation_names[i];
+		if (i == 0)
+			out << "   plot ";
+		if (simulation[i] and show_sim.count(i)) {
+			cnt++;
+			if(i == analytic_const || i == analytic_var
+					||i == analytic_new||i == analytic_new1)
+     			out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name;
+			else{
+			   out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name + " vol int\",\\\n";
+			   out << "\"" <<  name << "-flux.txt\" u 1:3 w l t \"" << name + " bdr int";
+			}
+			if (cnt != total_cnt)
+				out << "\",\\\n";
+			else
+				out << "\"\n";
+		}
+	}
+	out << "pause -1\n";
+	out.close();
+	std::cout
+			<< " To see the flux comparison in constant linear case in gnuplot format run:\n  cd "
+			<< date_and_time << "; gnuplot " << file << "\n";
+}
 #endif /* SRC_PARAMETERS_HH_ */
