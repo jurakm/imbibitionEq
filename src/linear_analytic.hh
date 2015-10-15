@@ -37,11 +37,6 @@ double find_upper_bound(double TOL){
 
 
 
-
-
-
-
-
 /** \brief Class for calculation of analytic solution of linearized imbibition equation  in 1D.
  *
  * If the fracture thickness \f$\delta\f$ is small the solution of linearized imbibition equation

@@ -192,116 +192,12 @@ struct Params{
   * Read all parameters from an input file. It must be called explicitly
   * since it is not called in the constructor.
   */
-  void read_input (int argc, char** argv)
-  {
-    std::string filename = default_file_name;
+  void read_input (int argc, char** argv);
 
-    if (argc > 1) filename = argv[1];
 
-    try {
-        Dune::ParameterTreeParser::readINITree (filename, input_data);
-      }
-    catch (...) {
-        std::cerr << "The configuration file \"" << filename << "\" "
-  	  "could not be read. Exiting..." << std::endl;
-        std::exit(1);
-      }
-
-    k         =  input_data.get<double>      ("Permeability");
-    poro      =  input_data.get<double>      ("Porosity");
-    delta     =  input_data.get<double>      ("Delta");
-    theta     =  input_data.get<double>      ("Theta");
-    dt_bdry   =  input_data.get<double>      ("DtBdry");
-//    acom      =  input_data.get<double>      ("AlphaCutOffMultiplier");
-    level     =  input_data.get<int>         ("Refinement.Level");
-    N         =  input_data.get<int>         ("Grid.NPoints");
-    q         =  input_data.get<double>      ("Grid.Q");
-    L         =  input_data.get<double>      ("Grid.Length");
-    sigma     =  input_data.get<double>      ("Grid.Sigma");
-    dt        =  input_data.get<double>      ("Time.Dt");
-    dtmax     =  input_data.get<double>      ("Time.DtMax");
-    dtout     =  input_data.get<double>      ("Time.DtOut");
-    tend      =  input_data.get<double>      ("Time.Final");
-    vtkout    =  input_data.get<int>         ("Output.VTK");
-    txtout    =  input_data.get<int>         ("Output.TXT");
-    str_fname =""; //  input_data.get<std::string> ("Output.SimulationBaseName");  -- not needed
-    Nout = tend/dtout;
-    std::string str_model =  input_data.get<std::string> ("Model");
-    set_simulation(str_model);
-    function_index  = input_data.get<int>("BoundaryFunction");
-    flux_funct_index = input_data.get<int>("FluxFunction");
-
-    if(function_index < 0 or function_index >= ptfun.size())
-       throw std::runtime_error("Wrong boundary function index! index = " + std::to_string(function_index));
-    if(flux_funct_index < 0 or flux_funct_index > 1)
-       throw std::runtime_error("Wrong flux function index! index = " + std::to_string(flux_funct_index));
-
-    // read parameters for selected function
-    if(flux_funct_index == 0){
-    	// Need only parameter a.
-        a  =  input_data.get<double>("AlphaFunction.Amplitude");
-        aImbFun.init(a);  // this object will be used
-        mean_alpha = aImbFun.beta(1.0);
-    }
-    else
-    {
-       double vgAlphaMat  =  input_data.get<double>      ("Matrix-VanGenuchten.Alpha");
-       double vgNMat   =  input_data.get<double>      ("Matrix-VanGenuchten.N");
-       Dumux::VanGenuchtenParams vgParamsMatrix(vgAlphaMat, vgNMat);
-       double vgAlphaFr  =  input_data.get<double>      ("Fracture-VanGenuchten.Alpha");
-       double vgNFr      =  input_data.get<double>      ("Fracture-VanGenuchten.N");
-       Dumux::VanGenuchtenParams vgParamsFracture(vgAlphaFr, vgNFr);
-
-       double muw =  input_data.get<double>("Fluids.WettingViscosity");
-       double mun =  input_data.get<double>("Fluids.NonWettingViscosity");
-       // this object will be used
-       vgImbFunMatrix.init(vgParamsMatrix, muw, mun);
-       mean_alpha = vgImbFunMatrix.beta(1.0);
-       vgImbFunFracture.init(vgParamsFracture, muw, mun);
-    }
-//    amin = mean_alpha * acom;
-    // All simulation output goes to the folder named after current date and time.
-    date_and_time = aux::date_time();
-    // create folder if it does not exist.
-    aux::create_dir(date_and_time);
-    str_sname = "./" + date_and_time + "/" + str_fname;
-    // copy the input file into the simulation folder for documentation purposes
-    std::string command = "cp " + filename + " " + date_and_time +"/";
-    std::system(command.c_str());
-
-    // plot alpha and beta functions for gnuplot
-	plot_functions();
-	scaled_delta = delta * std::sqrt(k*mean_alpha/poro);
-	std::cout << "Scaled delta = " << scaled_delta << std::endl;
-    return;
-  }
-
-   /// Constructor. Defines boundary functions (evolution of fracture saturations)
+  /// Constructor. Defines boundary functions (evolution of fracture saturations)
   /// and simulation names.
-	Params(std::string const & file_name = "imbibition.input") :
-			default_file_name(file_name) {
-		ptfun.push_back([](double t) {return 0.35 + 0.2* std::sin(2*M_PI*t);});
-		ptfun.push_back(
-				[](double t) {return ((0.9-0.1)/M_PI)*std::atan((2*t-1)/2.5)+(0.9+0.1)/2;});
-		ptfun.push_back(
-				[](double t) {return -((0.9-0.1)/M_PI)*std::atan((2*t-1)/0.1)+(0.9+0.1)/2;});
-		ptfun.push_back([](double t) {return 0.35 - 0.2* std::sin(2*M_PI*t);});
-		ptfun.push_back(
-				[](double t) {return std::max(std::min(0.5 + 0.51* std::sin(2*M_PI*t), 1.0), 0.0);});
-		ptfun.push_back([](double t) {return 0.05 + std::min(t,0.9);});
-
-		for (unsigned int i = 0; i < size; ++i)
-			simulation[i] = false;
-		simulation_names[new_nonlinear] = "n_nlin";
-		simulation_names[nonlinear] = "nlin";
-		simulation_names[constant_linear] = "clin";
-		simulation_names[variable_linear] = "vlin";
-		simulation_names[variable_new] = "vlin_n";
-		simulation_names[analytic_const] = "anac";
-		simulation_names[analytic_var] = "anav";
-		simulation_names[analytic_new] = "ana_n";
-		simulation_names[analytic_new1] = "ana_1";
-	}
+   explicit	Params(std::string const & file_name = "imbibition.input");
 
    Dune::ParameterTree input_data;
    /// Type of model to solve. It must the set before calling the driver.
@@ -351,11 +247,11 @@ struct Params{
 	double a_g(double t) const {
 		static const double TOL = 1.0e-5;
 		double val = 1.0; // good value for Params::new_nonlinear -- important.
-		if (model == Params::analytic_const or model == Params::constant_linear)
+		if (model == analytic_const or model == constant_linear)
 			val = mean_alpha;
-		else if (model == Params::analytic_var or model == Params::variable_linear)
+		else if (model == analytic_var or model == variable_linear)
 			val = alpha(bdry(t));
-		else if (model == Params::analytic_new or model == Params::variable_new) {
+		else if (model == analytic_new or model == variable_new) {
 			// we have the best results with theta = 0.75.
 			const double Yt = bdry(t);
 			const double dS = Yt - bdry(0.0);
@@ -474,6 +370,118 @@ private:
 
 };
 
+Params::Params(std::string const & file_name) :	default_file_name(file_name) {
+		ptfun.push_back([](double t) {return 0.35 + 0.2* std::sin(2*M_PI*t);});
+		ptfun.push_back(
+				[](double t) {return ((0.9-0.1)/M_PI)*std::atan((2*t-1)/2.5)+(0.9+0.1)/2;});
+		ptfun.push_back(
+				[](double t) {return -((0.9-0.1)/M_PI)*std::atan((2*t-1)/0.1)+(0.9+0.1)/2;});
+		ptfun.push_back([](double t) {return 0.35 - 0.2* std::sin(2*M_PI*t);});
+		ptfun.push_back(
+				[](double t) {return std::max(std::min(0.5 + 0.51* std::sin(2*M_PI*t), 1.0), 0.0);});
+		ptfun.push_back([](double t) {return 0.05 + std::min(t,0.9);});
+
+		for (unsigned int i = 0; i < size; ++i)
+			simulation[i] = false;
+		simulation_names[new_nonlinear] = "n_nlin";
+		simulation_names[nonlinear] = "nlin";
+		simulation_names[constant_linear] = "clin";
+		simulation_names[variable_linear] = "vlin";
+		simulation_names[variable_new] = "vlin_n";
+		simulation_names[analytic_const] = "anac";
+		simulation_names[analytic_var] = "anav";
+		simulation_names[analytic_new] = "ana_n";
+		simulation_names[analytic_new1] = "ana_1";
+	}
+
+
+/**
+ * Read all parameters from an input file. It must be called explicitly
+ * since it is not called in the constructor.
+ */
+ void Params::read_input (int argc, char** argv)
+ {
+   std::string filename = default_file_name;
+
+   if (argc > 1) filename = argv[1];
+
+   try {
+       Dune::ParameterTreeParser::readINITree (filename, input_data);
+     }
+   catch (...) {
+       std::cerr << "The configuration file \"" << filename << "\" "
+ 	  "could not be read. Exiting..." << std::endl;
+       std::exit(1);
+     }
+
+   k         =  input_data.get<double>      ("Permeability");
+   poro      =  input_data.get<double>      ("Porosity");
+   delta     =  input_data.get<double>      ("Delta");
+   theta     =  input_data.get<double>      ("Theta");
+   dt_bdry   =  input_data.get<double>      ("DtBdry");
+//    acom      =  input_data.get<double>      ("AlphaCutOffMultiplier");
+   level     =  input_data.get<int>         ("Refinement.Level");
+   N         =  input_data.get<int>         ("Grid.NPoints");
+   q         =  input_data.get<double>      ("Grid.Q");
+   L         =  input_data.get<double>      ("Grid.Length");
+   sigma     =  input_data.get<double>      ("Grid.Sigma");
+   dt        =  input_data.get<double>      ("Time.Dt");
+   dtmax     =  input_data.get<double>      ("Time.DtMax");
+   dtout     =  input_data.get<double>      ("Time.DtOut");
+   tend      =  input_data.get<double>      ("Time.Final");
+   vtkout    =  input_data.get<int>         ("Output.VTK");
+   txtout    =  input_data.get<int>         ("Output.TXT");
+   str_fname =""; //  input_data.get<std::string> ("Output.SimulationBaseName");  -- not needed
+   Nout = tend/dtout;
+   std::string str_model =  input_data.get<std::string> ("Model");
+   set_simulation(str_model);
+   function_index  = input_data.get<int>("BoundaryFunction");
+   flux_funct_index = input_data.get<int>("FluxFunction");
+
+   if(function_index < 0 or function_index >= ptfun.size())
+      throw std::runtime_error("Wrong boundary function index! index = " + std::to_string(function_index));
+   if(flux_funct_index < 0 or flux_funct_index > 1)
+      throw std::runtime_error("Wrong flux function index! index = " + std::to_string(flux_funct_index));
+
+   // read parameters for selected function
+   if(flux_funct_index == 0){
+   	// Need only parameter a.
+       a  =  input_data.get<double>("AlphaFunction.Amplitude");
+       aImbFun.init(a);  // this object will be used
+       mean_alpha = aImbFun.beta(1.0);
+   }
+   else
+   {
+      double vgAlphaMat  =  input_data.get<double>      ("Matrix-VanGenuchten.Alpha");
+      double vgNMat   =  input_data.get<double>      ("Matrix-VanGenuchten.N");
+      Dumux::VanGenuchtenParams vgParamsMatrix(vgAlphaMat, vgNMat);
+      double vgAlphaFr  =  input_data.get<double>      ("Fracture-VanGenuchten.Alpha");
+      double vgNFr      =  input_data.get<double>      ("Fracture-VanGenuchten.N");
+      Dumux::VanGenuchtenParams vgParamsFracture(vgAlphaFr, vgNFr);
+
+      double muw =  input_data.get<double>("Fluids.WettingViscosity");
+      double mun =  input_data.get<double>("Fluids.NonWettingViscosity");
+      // this object will be used
+      vgImbFunMatrix.init(vgParamsMatrix, muw, mun);
+      mean_alpha = vgImbFunMatrix.beta(1.0);
+      vgImbFunFracture.init(vgParamsFracture, muw, mun);
+   }
+//    amin = mean_alpha * acom;
+   // All simulation output goes to the folder named after current date and time.
+   date_and_time = aux::date_time();
+   // create folder if it does not exist.
+   aux::create_dir(date_and_time);
+   str_sname = "./" + date_and_time + "/" + str_fname;
+   // copy the input file into the simulation folder for documentation purposes
+   std::string command = "cp " + filename + " " + date_and_time +"/";
+   std::system(command.c_str());
+
+   // plot alpha and beta functions for gnuplot
+	plot_functions();
+	scaled_delta = delta * std::sqrt(k*mean_alpha/poro);
+	std::cout << "Scaled delta = " << scaled_delta << std::endl;
+   return;
+ }
 
 void Params::plot_functions(unsigned int n) const
 {
@@ -558,14 +566,32 @@ void Params::plot_functions(unsigned int n) const
     out << "set key right center\n";
     out << "#set grid\n";
     out << "set yrange [0.0:1]\n";
-    out << "plot \"functions.txt\" u 1:2 w l title '$\\alpha_m(S_w)$',\\\n";
-    out << "	 \"functions.txt\" u 1:4 w l title '${\\cal P}(S_w)$'\n";
+    out << "plot	 \"functions.txt\" u 1:4 w l title '${\\cal P}(S_w)$'\n";
+
+    tmp2 = aux::min_max(full_bdry_file_name, 0);
+    max = tmp2.second;
 
     out << "set ylabel \"time [days]\"\n";
     out << "set yrange [0:1.1]\n";
     out << "set key right bottom\n";
+    out << "unset xlabel\n";
+    out << "unset xrange\n";
+    out << "set xrange [0:" << max << "]\n";
     out << "plot \"bdry.txt\" u 1:2 w l title '${\\cal P}(S_w^f(t))$',\\\n";
     out << "     \"bdry.txt\" u 1:3 w l title '$S_w^f(t)$'\n";
+
+
+    tmp2 = aux::min_max(full_file_name, 1);
+    tmp3 = aux::min_max(full_file_name, 2);
+    max = std::max(tmp2.second, tmp3.second);
+    out << "unset ylabel\n";
+    out << "unset xlabel\n";
+    out << "unset xrange\n";
+    out << "unset yrange\n";
+    out << "set key right center\n";
+    out << "set yrange [0:" << max << "]\n";
+    out << "plot \"functions.txt\" u 1:2 w l title '$\\alpha_m(S_w)$',\\\n";
+    out << "	 \"functions.txt\" u 1:3 w l title '$\\beta_m(S_w)$'\n";
 
     out << "unset multiplot\n";
     out << "pause -1\n";
@@ -584,16 +610,24 @@ void Params::gnu_compare_c(std::set<int> const & show_sim,
 //	const std::string & dir = params.date_and_time;
 	std::string file = "flux"+add_to_name+".gnu";
 	std::ofstream out(date_and_time + "/"+ file);
-	out << "set xlabel \"time\"\n";
-	out << "set ylabel \"Nonwetting source\"\n";
+	out << "#set terminal epslatex size 3.5,2.62 color colortext\n";
+	out << "#set terminal epslatex color # linewidth 2\n";
+	out << "#set output \"flux-" << add_to_name << ".tex\"\n";
+
+	out << "set xlabel \"time [days]\"\n";
+	out << "set ylabel \"Nonwetting source [m^3/day]\"\n";
 	out << "set key left center\n";
 	out << "#set grid\n";
-	out << "set xrange [0:1]\n";
 
 	std::pair<double, double> tmp={1.0E100, -1.0E100}; // min, max
+	double time_max = 1.0;
 	for (unsigned int i = 0; i < size; ++i) {
 		if (simulation[i]) {
 	     	std::string name = str_sname  + simulation_names[i] + "-flux.txt";
+
+	     	auto tmp0 = aux::min_max(name, 0);
+	     	time_max = tmp0.second;
+
 	     	if(i == analytic_const || i == analytic_var ||
 	     	   i == analytic_new ||i == analytic_new1){
 	     	    auto tmp1 = aux::min_max(name, 1);
@@ -611,6 +645,9 @@ void Params::gnu_compare_c(std::set<int> const & show_sim,
 	     	}
 		}
 	}
+
+	out << "set xrange [0:" << time_max<< "]\n";
+
 	double dy = tmp.second - tmp.first;
 	assert(dy >= 0.0);
 	tmp.first -= 0.05*dy;
@@ -622,7 +659,7 @@ void Params::gnu_compare_c(std::set<int> const & show_sim,
 	for (unsigned int i = 0; i < size; ++i) {
      	std::string name = simulation_names[i];
 		if (i == 0)
-			out << "   plot ";
+			out << "   plot \\\n";
 		if (simulation[i] and show_sim.count(i)) {
 			cnt++;
 			if(i == analytic_const || i == analytic_var
