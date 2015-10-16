@@ -381,6 +381,7 @@ Params::Params(std::string const & file_name) :	default_file_name(file_name) {
 				[](double t) {return std::max(std::min(0.5 + 0.51* std::sin(2*M_PI*t), 1.0), 0.0);});
 		ptfun.push_back([](double t) {return 0.05 + std::min(t,0.9);});
 		ptfun.push_back([](double t) {return 0.05 + std::min(t/10.0, 0.9);});
+		ptfun.push_back([](double t) {return 0.05 + std::min(t/50.0, 0.9);});
 
 		for (unsigned int i = 0; i < size; ++i)
 			simulation[i] = false;
