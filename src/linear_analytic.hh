@@ -345,8 +345,8 @@ void AnalyticSolution<Params>::calculate_flux(){
       o2scl::err_hnd = new_err_hnd;
 //      o2scl::inte_qag_gsl<> inte_formula;
       o2scl::inte_adapt_cern<o2scl::funct11, 2000> inte_formula;
-      inte_formula.tol_rel = 1.0e-5;
-      inte_formula.tol_abs = 1.0e-5;
+      inte_formula.tol_rel = 1.0e-6;
+      inte_formula.tol_abs = 1.0e-6;
       // Output flux -- one value for each time instant.
       // Time loop
       lin_flux[0].first = 0.0;

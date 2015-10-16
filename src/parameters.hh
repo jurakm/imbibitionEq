@@ -148,7 +148,7 @@ void gnu_compare_c(Params const & params){
 							  Params::variable_new}, "-cmp");
 	params.gnu_compare_c({Params::constant_linear,Params::analytic_const}, "-const");
 	params.gnu_compare_c({Params::analytic_var, Params::analytic_new,
-								  Params::analytic_new1}, "-var");
+		Params::variable_linear, Params::variable_new, Params::analytic_new1}, "-var");
 
 }
 
@@ -380,6 +380,7 @@ Params::Params(std::string const & file_name) :	default_file_name(file_name) {
 		ptfun.push_back(
 				[](double t) {return std::max(std::min(0.5 + 0.51* std::sin(2*M_PI*t), 1.0), 0.0);});
 		ptfun.push_back([](double t) {return 0.05 + std::min(t,0.9);});
+		ptfun.push_back([](double t) {return 0.05 + std::min(t/10.0, 0.9);});
 
 		for (unsigned int i = 0; i < size; ++i)
 			simulation[i] = false;
@@ -576,7 +577,10 @@ void Params::plot_functions(unsigned int n) const
     out << "set key right bottom\n";
     out << "unset xlabel\n";
     out << "unset xrange\n";
+    out << "unset xtics\n";
+    out << "set xlabel 'time [days]'\n";
     out << "set xrange [0:" << max << "]\n";
+    out << "set xtics\n";
     out << "plot \"bdry.txt\" u 1:2 w l title '${\\cal P}(S_w^f(t))$',\\\n";
     out << "     \"bdry.txt\" u 1:3 w l title '$S_w^f(t)$'\n";
 
@@ -589,7 +593,10 @@ void Params::plot_functions(unsigned int n) const
     out << "unset xrange\n";
     out << "unset yrange\n";
     out << "set key right center\n";
+    out << "set xlabel '$S_w$'\n";
     out << "set yrange [0:" << max << "]\n";
+    out << "set xrange [0:1]\n";
+    out << "set xtics ('$0$' 0.0, '$.2$' 0.2,'$.4$' 0.4,'$.6$' 0.6,'$.8$' 0.8, '$1$' 1.0) \n";
     out << "plot \"functions.txt\" u 1:2 w l title '$\\alpha_m(S_w)$',\\\n";
     out << "	 \"functions.txt\" u 1:3 w l title '$\\beta_m(S_w)$'\n";
 
