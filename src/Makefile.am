@@ -1,12 +1,10 @@
 
 SUBDIRS =
 
-noinst_PROGRAMS = imbibitionEq  test_functions
+noinst_PROGRAMS = imbibitionEq 
 
 imbibitionEq_SOURCES = imbibitionEq.cc  bctype.hh driver.hh  space_operator.hh timeMng.hh\
                        time_operator.hh integration.hh test.hh parameters.hh mgf.hh linear_analytic.hh
-
-test_functions_SOURCES = test_functions.cc vangenuchten.hh  imbibitionFunctions.hh
 
 imbibitionEq_CPPFLAGS = $(AM_CPPFLAGS) \
 	$(DUNEMPICPPFLAGS) \
@@ -15,8 +13,6 @@ imbibitionEq_CPPFLAGS = $(AM_CPPFLAGS) \
 	$(ALBERTA_CPPFLAGS) \
 	$(ALUGRID_CPPFLAGS)
 	
-test_functions_CPPFLAGS = $(AM_CPPFLAGS) $(DUNEMPICPPFLAGS) $(UG_CPPFLAGS) $(ALUGRID_CPPFLAGS)
-
 # The libraries have to be given in reverse order (most basic libraries
 # last).  Also, due to some misunderstanding, a lot of libraries include the
 # -L option in LDFLAGS instead of LIBS -- so we have to include the LDFLAGS
@@ -30,7 +26,6 @@ imbibitionEq_LDADD = \
 	$(DUNEMPILIBS)	\
 	$(LDADD)
 	
-test_functions_LDADD =  $(DUNE_LDFLAGS) $(DUNE_LIBS) $(UG_LDFLAGS)  $(DUNEMPILIBS)	$(LDADD)
 
 imbibitionEq_LDFLAGS = $(AM_LDFLAGS) \
 	$(DUNEMPILDFLAGS) \
@@ -41,7 +36,6 @@ imbibitionEq_LDFLAGS = $(AM_LDFLAGS) \
 	$(DUNE_LDFLAGS)
 
 
-test_functions_LDFLAGS = $(AM_LDFLAGS) $(DUNEMPILDFLAGS) $(UG_LDFLAGS) $(DUNE_LDFLAGS)
 
 # don't follow the full GNU-standard
 # we need automake 1.9

@@ -53,8 +53,8 @@ public:
 		// method
 
 		// dimensions
-		const int dim  = EG::Geometry::dimension;
-		const int dimw = EG::Geometry::dimensionworld;
+		const int dim  = EG::Geometry::mydimension;
+		const int dimw = EG::Geometry::coorddimension;
 
 		// extract some types
 		typedef typename LFSU::Traits::FiniteElementType::Traits::LocalBasisType::Traits LBTraits;
@@ -86,13 +86,16 @@ public:
 
 			if (coeff.model == Params::nonlinear)
 				alpha *= coeff.alpha(u);
-			else if (coeff.model == Params::constant_linear)
-				alpha *= coeff.mean_alpha;
-			else if (coeff.model == Params::variable_linear)
-				alpha *= coeff.alpha(coeff.bdry(time_));
-			else {
-				// if new_nonlinear alpha is not changed
-			}
+			else
+				alpha *= coeff.a_g(time_);
+
+//			else if (coeff.model == Params::constant_linear)
+//				alpha *= coeff.mean_alpha;
+//			else if (coeff.model == Params::variable_linear)
+//				alpha *= coeff.alpha(coeff.bdry(time_));
+//			else {
+//				// if new_nonlinear alpha is not changed
+//			}
 			// evaluate gradient of basis functions on reference element
 			std::vector<Jacobian> js(lfsu.size());
 			lfsu.finiteElement().localBasis().evaluateJacobian(it->position(), js);
@@ -103,7 +106,7 @@ public:
 			for (size_type i = 0; i < lfsu.size(); i++)
 				jac.mv(js[i][0], gradphi[i]);
 
-			// compute gradient of u or grad beta(u)
+			// compute gradient of u or gradient of beta(u)
 			Gradient gradu(0.0);
 			if (coeff.model == Params::new_nonlinear) {
 				for (size_type i = 0; i < lfsu.size(); ++i)
@@ -113,8 +116,7 @@ public:
 					gradu.axpy(x(lfsu, i), gradphi[i]);
 			}
 			// integrate grad u * grad phi_i
-			RF factor = it->weight()
-					* eg.geometry().integrationElement(it->position());
+			RF factor = it->weight() * eg.geometry().integrationElement(it->position());
 			for (size_type i = 0; i < lfsu.size(); ++i)
 				r.accumulate(lfsu, i, alpha * (gradu * gradphi[i]) * factor);
 		}

@@ -10,8 +10,10 @@
 #include <vector>
 #include <stdexcept>
 
-/** MGF = Mesh generating function. Generate 1D mesh on interval [0,L]
- * adapted to a baoundary layer (BL) on left or both sides of [0,L].
+/** \brief Mesh generating function.
+ *
+ * Generate 1D mesh on interval [0,L]
+ * adapted to a boundary layer (BL) on left side or on the both sides of [0,L].
  * Lecture Notes in Mathematics 1985
  * Torsten Linß
  *
@@ -19,6 +21,8 @@
  *  Springer
  *   /articles/Knjige/NumericalPDE
  *  [Torsten_Lin]_Layer-Adapted_Meshes_for_Reaction-C(BookZZ.org).pdf
+ *
+ *  TODO In the case of one sided boundary layer the grid is not smooth at x = L/2.
  * */
 template <typename Params>
 class MGF{
@@ -31,21 +35,23 @@ class MGF{
      * @param beta = slope of the boundary layer (>0, an estimate)
      **/
     MGF(Params const & params)
-      : L_(0.0), eps_(0.0), q_(0.0), sigma_(0.0), tau_(0.0),
-        derivative_(0.0), iter_(0), N_(0)
+      : L_(0.0),  q_(0.0), C_(0.0), tau_(0.0), x_tau_(0.0), derivative_(0.0), iter_(0), N_(0)
       {
            L_     = params.L;
-           eps_   = params.delta *params.delta;
+           double eps   = params.scaled_delta; // *params.delta;
            q_     = params.q;
-           sigma_ = params.sigma;
+           double sigma = params.sigma;
            N_     = params.N;
+           C_     = eps * sigma;
 
-           if(L_     <= 0.0)   throw std::runtime_error("L <= 0");
-           if(eps_   <= 0.0)   throw std::runtime_error("eps <= 0");
-           if(q_     <= 0.0)   throw std::runtime_error("q <= 0");
-           if(sigma_ <= 0.0)   throw std::runtime_error("sigma <= 0");
-           if(N_     <= 0  )   throw std::runtime_error("N <= 0");
+           if(L_ <= 0.0)   throw std::runtime_error("L <= 0");
+           if(C_ <= 0.0)   throw std::runtime_error("eps*sigma <= 0");
+           if(q_ <= 0.0)   throw std::runtime_error("q <= 0");
+           if(q_ >= 0.5)   throw std::runtime_error("q >= 0.5! Keep q in (0,0.5).");
+           if(N_ <= 0  )   throw std::runtime_error("N <= 0");
 
+           if(C_/q_ >= L_)
+        	   std::cout << "MGF: warning. Boundary layer is not detected.\n";
            find_end_of_interval();
       }
 
@@ -64,8 +70,9 @@ class MGF{
         if( N <= 0 )   throw std::string("N <= 0");
         pts.resize(N+1);
         for(int i=0; i <= N; ++i){
-          double yi =  t_to_x_general( i/static_cast<double>(N) );
-          pts[i] = yi;
+        	const double t_i = i/static_cast<double>(N); // t_i \in [0,1]
+            const double y_i =  t_to_x_general( t_i );
+            pts[i] = y_i;
         }
         return;
     }
@@ -78,26 +85,30 @@ class MGF{
     void double_side_interval(std::vector<double> & pts){
         int N = N_;
         if( N <= 0 )   throw std::string("N <= 0");
-        // make N pair if it is already not.  
+        // make N pair if it is not already.
         if( (N/2)*2 != N) ++N;
         // Indices go as follows 
         // 0 1 2 ... M-1 M M+1 ...  N-1 N     where M = N/2. 
         int M = N/2;
         pts.resize(N+1);
         for(int i=0; i < M; ++i){
-          double yi =  t_to_x_general( i/static_cast<double>(N) );
-          double xi = yi; //(L_/2.0)*yi;
-          pts[i] = xi;
-          pts[N-i] = L_ - xi;
+          double t_i = i/static_cast<double>(N); // t_i \in [0,1/2)
+          double x_i =  t_to_x_general( t_i  );
+          pts[i] = x_i;
+          pts[N-i] = L_ - x_i;
         }
         pts[M] = L_/2.0;
         return;
     }
 
-
   private:
     // Calculation of tau -- the end of BL part of the grid.
      void find_end_of_interval(){
+    	if(C_/q_ >= L_){  // there is no boundary layer
+    		tau_ = 0.0;
+    		x_tau_ = 0.0;
+    		derivative_ = L_;
+    	}
         double tau_old = -100.0;
         double tau_next = 0.0;
         const double TOL = 1.0E-7;
@@ -106,34 +117,38 @@ class MGF{
         while(std::abs(tau_old - tau_next) >= TOL and iter < ITERMAX)
         {
             tau_old = tau_next;
-            tau_next = q_ -  (sigma_*eps_) *(0.5 - tau_old)/(L_/2 - t_to_x(tau_old));
+            tau_next = q_ -  C_ *(0.5 - tau_old)/(L_/2 - t_to_x(tau_old));
             iter++;
 //	    std::cout << tau_next << std::endl;
         }
         if(iter >= ITERMAX) 
-          throw std::runtime_error("find_end_of_interval : maximim number of iterations excided");
+          throw std::runtime_error("find_end_of_interval : maximum number of iterations exceeded");
 
         // save calculated values
         tau_  = tau_next;
         iter_ = iter;
         x_tau_ = t_to_x(tau_);
         derivative_ = der_t_to_x(tau_);
+
+//        const double residual = derivative_ - (L_/2 - x_tau_)/(0.5-tau_);
+//        std::cout << "MGF::find_end_of_interval: residual = " << residual << std::endl;
     }
 
      double x_to_t(double x) const { 
-      return q_*(1-std::exp(-x/(sigma_*eps_)));
+      return q_*(1-std::exp(-x/(C_)));
     }
 
      // transform parameter t \in [0,1] into grid point, but only in the
      // BL part of the grid
-    double t_to_x(double t)  const { 
+    double t_to_x(double t)  const {
+      assert( t < q_ );
       if(t == 0.0) return 0.0;
-      return -(sigma_*eps_)*std::log( (q_-t)/q_ );
+      return -C_*std::log( (q_-t)/q_ );
     } 
 
     // Derivative of t_to_x(t)
     double der_t_to_x(double t)  const { 
-      return (sigma_*eps_)*( 1.0/(q_-t) );
+      return C_*( 1.0/(q_-t) );
     } 
 
      // transform parameter t \in [0,1] into grid point, in both the
@@ -143,10 +158,11 @@ class MGF{
       else          return x_tau_ + derivative_ * ( t - tau_); // uniform part
     }
 
-    double L_;  // lenght of range interval
-    double eps_;  
+    double L_;  // length of range interval
+//    double eps_;
     double q_;   // q_ in (0,1)
-    double sigma_; // grading of the mesh inside the layer
+//    double sigma_; // grading of the mesh inside the layer
+    double C_;
     double tau_;
     double x_tau_; 
     double derivative_;

@@ -5,6 +5,7 @@
 #include <dune/pdelab/localoperator/pattern.hh>
 #include <dune/pdelab/localoperator/flags.hh>
 #include <dune/pdelab/localoperator/idefault.hh>
+//#include <dune/grid/common/geometry.hh>
 
 /** \brief Bilinear form under the time derivative.
  *
@@ -51,7 +52,7 @@ public:
     typedef typename LFSU::Traits::SizeType size_type;
         
     // dimensions
-    const int dim = EG::Geometry::dimension;
+    const int dim = EG::Geometry::mydimension;
     const double poro = params_.poro;
     // select quadrature rule
     Dune::GeometryType gt = eg.geometry().type();
