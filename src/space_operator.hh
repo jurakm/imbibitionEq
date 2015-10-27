@@ -1,3 +1,6 @@
+#ifndef _SPACE_OPERATOR_INCLUDED__
+#define _SPACE_OPERATOR_INCLUDED__
+
 #include <dune/pdelab/localoperator/idefault.hh>
 
 #include <dune/geometry/quadraturerules.hh>
@@ -158,3 +161,4 @@ public:
 		Dune::PDELab::InstationaryLocalOperatorDefaultMethods<double>::preStep( time, dt, stages);
 	}
 };
+#endif

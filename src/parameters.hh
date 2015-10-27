@@ -64,30 +64,30 @@ std::string date_time(){
  *  @param file_name = file name
  *  @param colon = colon index, starting from zero.
  */
-std::pair<double, double> min_max(std::string const & file_name, int colon)
-		{
-   std::pair<double, double> tmp={1.0E100, -1.0E100}; // min, max
+std::pair<double, double> min_max ( std::string const & file_name, int colon )
+{
+     std::pair<double, double> tmp= {1.0E100, -1.0E100}; // min, max
 
-   std::ifstream in(file_name);
+     std::ifstream in ( file_name );
 //   std::cout << file_name << std::endl;
-   if(!in) throw std::runtime_error("Cannot open the file "+file_name);
-   std::string line;
-   while(std::getline(in, line)){
-	   if(line[0] =='#') continue;
-	   boost::char_separator<char> sep(" ");
-	   boost::tokenizer<boost::char_separator<char>> tokens(line, sep);
+     if ( !in ) throw std::runtime_error ( "Cannot open the file "+file_name );
+     std::string line;
+     while ( std::getline ( in, line ) ) {
+          if ( line[0] =='#' ) continue;
+          boost::char_separator<char> sep ( " " );
+          boost::tokenizer<boost::char_separator<char>> tokens ( line, sep );
 //	   auto size = tokens.end() - tokens.begin();
 //	   if(colon > size) throw std::runtime_error("Too few colons in file "+file_name);
-	   auto it = tokens.begin();
-	   int i=0;
-	   for(; it != tokens.end() && i < colon; ++i) ++it;
-	   if(colon != i) throw std::runtime_error("Too few colons in file "+file_name);
+          auto it = tokens.begin();
+          int i=0;
+          for ( ; it != tokens.end() && i < colon; ++i ) ++it;
+          if ( colon != i ) throw std::runtime_error ( "Too few colons in file "+file_name );
 //	   std::cout << *it << std::endl;
-	   double value = std::stod(*it);
-	   if(value < tmp.first) tmp.first = value;
-	   if(value > tmp.second) tmp.second = value;
-   }
-   return tmp;
+          double value = std::stod ( *it );
+          if ( value < tmp.first ) tmp.first = value;
+          if ( value > tmp.second ) tmp.second = value;
+     }
+     return tmp;
 }
 
 /** Create directory (linux specific). */
@@ -141,7 +141,7 @@ void gnu_output_solution(Params const & params){
 template <typename Params>
 void gnu_compare_c(Params const & params){
 	params.gnu_compare_c();
-	params.gnu_compare_c({Params::new_nonlinear, Params::nonlinear}, "-nlin");
+	params.gnu_compare_c({Params::new_nonlinear, Params::nonlinear, Params::chernoff}, "-nlin");
 	params.gnu_compare_c({Params::nonlinear,
 							  Params::constant_linear,
 							  Params::variable_linear,
@@ -185,7 +185,7 @@ void gnu_compare_c(Params const & params){
 struct Params{
 	/// Constants describing different imbibition models.
 	enum Model{
-	  new_nonlinear=0, nonlinear, constant_linear, variable_linear, variable_new,
+	  new_nonlinear=0, nonlinear, constant_linear, variable_linear, variable_new, chernoff,
 	  analytic_const, analytic_var, analytic_new, analytic_new1, size
 	};
  /**
@@ -316,7 +316,7 @@ struct Params{
       *                      file names. Default (for all simulations) is empty string.
       */
      void gnu_compare_c(std::set<int> const & show_sim =
-          {new_nonlinear, nonlinear, constant_linear, variable_linear, variable_new,
+          {new_nonlinear, nonlinear, constant_linear, variable_linear, variable_new, chernoff,
          		 analytic_const, analytic_var, analytic_new, analytic_new1},
   			 std::string const & add_to_name ="") const;
 
@@ -360,6 +360,9 @@ private:
 		   case 'f':
 		   case 'F': simulation[analytic_new1] = true;
 		             break;
+           case 'g':
+           case 'G': simulation[chernoff] = true;
+                     break;
 		   }
 	   }
    }
@@ -394,6 +397,7 @@ Params::Params(std::string const & file_name) :	default_file_name(file_name) {
 		simulation_names[analytic_var] = "anav";
 		simulation_names[analytic_new] = "ana_n";
 		simulation_names[analytic_new1] = "ana_1";
+        simulation_names[chernoff] = "chernoff";
 	}
 
 

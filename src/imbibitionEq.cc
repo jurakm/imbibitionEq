@@ -25,6 +25,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <future>
 
 #include <dune/common/parallel/mpihelper.hh>
 #include <dune/common/exceptions.hh>
@@ -69,7 +70,8 @@
 #include "mgf.hh"
 #include "linear_analytic.hh"
 #include "imbibitionFunctions.hh"
-#include <future>
+#include "chernoff-driver.hh"
+
 
 //===================================================================
 // Main program that constructs the grid and calls the driver routine
@@ -131,7 +133,10 @@ int main(int argc, char** argv) {
 				{
 				   params.model = static_cast<Params::Model>(i);
 				   std::cout << "Model " << i << " launched.\n";
+                   if(i != Params::chernoff)
     			   rets.push_back(std::async(std::launch::async, driver<GV, Params>, gv, params));
+                   else
+                   rets.push_back(std::async(std::launch::async, chernoff_driver<GV, Params>, gv, params));
 				}
 			}
 			// wait for all threads to complete before calling gnu_compare_c().

@@ -7,6 +7,8 @@
 #include <dune/pdelab/backend/istl/bcrsmatrixbackend.hh>
 #include <dune/pdelab/newton/newton.hh>
 #include <dune/pdelab/constraints/conforming.hh>
+#include <dune/pdelab/constraints/common/constraints.hh>  // constraints function
+#include <dune/pdelab/gridfunctionspace/interpolate.hh>   // interpolate function
 
 #include "parameters.hh"
 #include "integration.hh"

@@ -7,6 +7,7 @@
 # with spaces.
 
 INPUT                 += @top_srcdir@/dune/
+INPUT                 += @top_srcdir@/src/
 # see e.g. dune-grid for the examples of mainpage and modules
 # INPUT                 += @srcdir@/mainpage #                          @srcdir@/modules
 

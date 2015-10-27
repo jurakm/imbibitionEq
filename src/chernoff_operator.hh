@@ -1,32 +1,44 @@
 #ifndef _CHERNOFF_OPERATOR__
 #define _CHERNOFF_OPERATOR__
 
-#include <dune/pdelab/localoperator/idefault.hh>
-
 #include <dune/geometry/quadraturerules.hh>
 #include <dune/geometry/referenceelements.hh>
 
 #include <dune/pdelab/localoperator/defaultimp.hh>
 #include <dune/pdelab/localoperator/flags.hh>
 #include <dune/pdelab/localoperator/pattern.hh>
+#include <dune/pdelab/localoperator/idefault.hh>
+
+#include <dune/pdelab/common/geometrywrapper.hh>
+//#include <dune/grid/common/geometry.hh>
 
 #include <stdexcept>
+#include <cassert>
+
 #include "parameters.hh"
-/** Space part of a local operator for solving the equation
+/** @brief Local operator for Chernoff formula method
+ * 
+ * A local operator for solving the equation 
  *
- *   Phi dS/dt - delta^2 k div(a(S) grad S) = 0   in \Omega x (0,T)
- *                  S = g   on \partial\Omega x (0,T)
- *
- * with conforming finite elements
+ *  \f[ \Phi \partial S/\partial t - \delta^2 k \Delta \beta(S) = 0  \quad \mbox{in }\; Y \times  (0,T)\f]
+ *    \f[               S(x,t) = g(t)   \quad \mbox{on }\; \partial Y\times (0,T) \f]
+ *    \f[               S(x,0) = g(0)   \quad \mbox{on }\; Y\f]
+ * 
+ * with conforming finite elements. We use backward Euler discrtization leading to the equation:
+ * 
+ * \f[ \Phi \frac{S^n - S^{n-1}}{\Delta t}  - \delta^2 k \Delta \beta(S^n) = 0 \quad \mbox{in }\; Y \times  (0,T)\f]
+ *    \f[               S^n = g(t^n)   \quad \mbox{on }\; \partial Y \times (0,T) \f]
+ *  for \f$n=1,2,\ldots\f$, where \f$S^0=g(0)\f$. 
+ * 
  *
  * \tparam BCType parameter class indicating the type of boundary condition
  */
-template<class BCType, class Params>
-class LocalOperator: public Dune::PDELab::NumericalJacobianApplyVolume<
-        StationaryLocalOperator<BCType, Params> >,
-        public Dune::PDELab::NumericalJacobianVolume<LocalOperator<BCType, Params> >,
-        public Dune::PDELab::NumericalJacobianApplyBoundary<LocalOperator<BCType, Params> >,
-        public Dune::PDELab::NumericalJacobianBoundary<LocalOperator<BCType, Params> >,
+template<typename BCType, typename Params, typename DGF>
+class LocalOperator: 
+        public Dune::PDELab::NumericalJacobianApplyVolume< LocalOperator<BCType, Params, DGF> >,
+        public Dune::PDELab::NumericalJacobianVolume<LocalOperator<BCType, Params, DGF> >,
+        public Dune::PDELab::NumericalJacobianApplyBoundary<LocalOperator<BCType, Params, DGF> >,
+        public Dune::PDELab::NumericalJacobianBoundary<LocalOperator<BCType, Params, DGF> >,
         public Dune::PDELab::FullVolumePattern,
         public Dune::PDELab::LocalOperatorDefaultFlags {
 public:
@@ -40,12 +52,16 @@ public:
         doAlphaVolume = true
     };
     /// Constructor
-    LocalOperator(const BCType& bctype_,
-            const Params& coeff_,
-            unsigned int intorder_ = 3) :
-            time_(0.0), bctype(bctype_), coeff(coeff_), intorder(intorder_) {
+    LocalOperator(const BCType& bctype_, const Params& coeff_, DGF const & dgf, double  dt, unsigned int intorder_ = 3) :
+            time_(0.0), dt_(dt), bctype(bctype_), coeff(coeff_), dgf_(dgf),  intorder(intorder_) {
     }
-
+    
+    /** Set dt for new calculation. */
+    void setDt(double dt) { dt_ = dt; assert(dt_ > 0.0); }
+    
+    /** Set time for subsequent calculation. */
+    void setTime(double time) { time_ = time; }
+    
     // volume integral depending on test and ansatz functions
     template<typename EG, typename LFSU, typename X, typename LFSV, typename R>
     void alpha_volume(const EG& eg, const LFSU& lfsu, const X& x,
@@ -72,6 +88,7 @@ public:
         Dune::GeometryType gt = eg.geometry().type();
         const Dune::QuadratureRule<DF, dim>& rule = Dune::QuadratureRules<DF,dim>::rule(gt, intorder);
 
+        const double poro = coeff.poro;
         // loop over quadrature points
         for (auto it = rule.begin(); it != rule.end(); ++it) {
             // evaluate basis functions on reference element
@@ -80,10 +97,8 @@ public:
 
             // compute solution u (or beta(u)) at integration point
             RF u = 0.0;
-            if (coeff.model == Params::nonlinear) {
-                for (size_type i = 0; i < lfsu.size(); ++i)
+            for (size_type i = 0; i < lfsu.size(); ++i)
                     u += x(lfsu, i) * phi[i];
-            }
 
             double alpha = coeff.k * coeff.delta * coeff.delta;
 
@@ -111,149 +126,33 @@ public:
 
             // compute gradient of u or gradient of beta(u)
             Gradient gradu(0.0);
-            if (coeff.model == Params::new_nonlinear) {
+            if (coeff.model == Params::new_nonlinear || coeff.model == Params::Params::chernoff) {
                 for (size_type i = 0; i < lfsu.size(); ++i)
                     gradu.axpy(coeff.beta(x(lfsu, i)), gradphi[i]); // grad beta(u)
             } else {  // In all other cases calculate grad u.
                 for (size_type i = 0; i < lfsu.size(); ++i)
                     gradu.axpy(x(lfsu, i), gradphi[i]);
             }
+            typename DGF::Traits::RangeType u_old;
+            dgf_.evaluate(eg.entity(), it->position(), u_old);
             // integrate grad u * grad phi_i
             RF factor = it->weight() * eg.geometry().integrationElement(it->position());
             for (size_type i = 0; i < lfsu.size(); ++i)
-                r.accumulate(lfsu, i, alpha * (gradu * gradphi[i]) * factor);
+                r.accumulate(lfsu, i, poro * ( (u-u_old)/dt_) * phi[i] * factor  +  alpha * (gradu * gradphi[i]) * factor);
         }
     }
 
 protected:
     double time_;
+    double dt_;
 
 private:
     const BCType& bctype;
     const Params & coeff;
+    /** Discrete grid function representing the solution at preceeding time level. */
+    DGF const & dgf_;     
     unsigned int intorder;
 };
-
-/** Space part of a local operator for solving the equation
- *
- *   Phi dS/dt - delta^2 k div(a(S) grad S) = 0   in \Omega x (0,T)
- *                  S = g   on \partial\Omega x (0,T)
- *
- * with conforming finite elements
- *
- *
- * \tparam B = class indicating the type of boundary condition
- * \tparam C =  class of problem parameters
- */
-template<class BCType, class Params>
-class SpaceLocalOperator: public StationaryLocalOperator<BCType, Params>,
-        public Dune::PDELab::InstationaryLocalOperatorDefaultMethods<double> // default methods
-{
-    BCType& b;
-public:
-    SpaceLocalOperator(BCType& b_, const Params& c_, unsigned int intorder_ = 2) :
-            StationaryLocalOperator<BCType, Params>(b_, c_, intorder_), b(b_) {
-    }
-
-    void preStep(double time, double dt, int stages) {
-        this->time_ = time;
-//    b.setTime(time); // postavi korektno vrijeme rubnom uvjetu
-        Dune::PDELab::InstationaryLocalOperatorDefaultMethods<double>::preStep( time, dt, stages);
-    }
-};
-
-
-
-#include <dune/geometry/referenceelements.hh>
-#include <dune/geometry/quadraturerules.hh>
-#include <dune/pdelab/common/geometrywrapper.hh>
-#include <dune/pdelab/localoperator/defaultimp.hh>
-#include <dune/pdelab/localoperator/pattern.hh>
-#include <dune/pdelab/localoperator/flags.hh>
-#include <dune/pdelab/localoperator/idefault.hh>
-//#include <dune/grid/common/geometry.hh>
-
-/** \brief Bilinear form under the time derivative.
- *
- *
- * Class representing local operator for the accumulation term
- * \f[
-         \int_\Omega \Phi u v dx
- * \f]
- * where \f$\Phi\f$ is the porosity.
- *
- * \tparam Params Parameter class here used only to get the porosity.
- */
-template <typename Params>
-class TimeLocalOperator 
-  : public Dune::PDELab::NumericalJacobianApplyVolume<TimeLocalOperator<Params> >,
-    public Dune::PDELab::NumericalJacobianVolume<TimeLocalOperator<Params> >,
-    public Dune::PDELab::FullVolumePattern,
-    public Dune::PDELab::LocalOperatorDefaultFlags,
-    public Dune::PDELab::InstationaryLocalOperatorDefaultMethods<double>
-{
-public:
-  //! pattern assembly flags
-  enum { doPatternVolume = true };
-
-  //! residual assembly flags
-  enum { doAlphaVolume = true };
-
-  /// Constructor.
-  TimeLocalOperator (Params const & params, unsigned int intorder_=2)
-    : params_(params), intorder(intorder_), time(0.0)
-  {}
-
-  //! set time for subsequent evaluation
-  void setTime (double t) {time = t;}
-
-  //! volume integral depending on test and ansatz functions
-  template<typename EG, typename LFSU, typename X, typename LFSV, typename R>
-  void alpha_volume (const EG& eg, const LFSU& lfsu, const X& x, const LFSV& lfsv, R& r) const
-  {
-    // domain and range field type
-    typedef typename LFSU::Traits::FiniteElementType::Traits::LocalBasisType::Traits::DomainFieldType DF;
-    typedef typename LFSU::Traits::FiniteElementType::Traits::LocalBasisType::Traits::RangeFieldType RF;
-    typedef typename LFSU::Traits::FiniteElementType::Traits::LocalBasisType::Traits::RangeType RangeType;
-    typedef typename LFSU::Traits::SizeType size_type;
-        
-    // dimensions
-    const int dim = EG::Geometry::mydimension;
-    const double poro = params_.poro;
-    // select quadrature rule
-    Dune::GeometryType gt = eg.geometry().type();
-    const Dune::QuadratureRule<DF,dim>& rule = Dune::QuadratureRules<DF,dim>::rule(gt,intorder);
-
-    // loop over quadrature points
-    for (typename Dune::QuadratureRule<DF,dim>::const_iterator it=rule.begin(); it!=rule.end(); ++it)
-      {
-        // evaluate basis functions
-        std::vector<RangeType> phi(lfsu.size());
-        lfsu.finiteElement().localBasis().evaluateFunction(it->position(),phi);
-
-        // evaluate u
-        RF u=0.0;
-        for (size_type i=0; i<lfsu.size(); i++)
-          u += x(lfsu,i)*phi[i];
-
-        // u*phi_i
-        RF dx = it->weight() * eg.geometry().integrationElement(it->position());
-        for (size_type i=0; i<lfsu.size(); i++)
-          r.accumulate(lfsu, i, poro * u * phi[i] * dx);
-      }
-  }
-private:
-  Params params_;
-  unsigned int intorder;
-  double time;
-};
-
-
-
-
-
-
-
 
 
 
