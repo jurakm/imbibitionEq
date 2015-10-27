@@ -119,6 +119,10 @@ int main(int argc, char** argv) {
 			typedef Grid::LeafGridView GV;
 			const auto& gv = grid.leafGridView();
 
+            // Set O2SCL error handler 
+            auto tmp = o2scl::err_hnd; 
+            auto new_err_hnd = new o2scl::err_hnd_cpp();
+            
 			// Numerical models launch as parallel jobs.
 			std::vector<std::future<int>> rets;  // execution times (in secs) for numerical models (parallel jobs)
 //			int anC = 0, anV=0, anN=0, an1=0; // execution times (in secs) for analytic model (serial)
@@ -150,6 +154,11 @@ int main(int argc, char** argv) {
 			if(dim == 1) aux::gnu_output_solution(params);
 			// Write gnuplot control file for displaying the fluxes.
 			aux::gnu_compare_c(params);
+            
+            // O2SCL. Restore old error handler.
+            o2scl::err_hnd = tmp;  
+            delete new_err_hnd;
+            
 		}
 
 		Dune::dinfo.detach();

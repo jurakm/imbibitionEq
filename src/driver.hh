@@ -6,7 +6,9 @@
 //#include <dune/pdelab/backend/istl/descriptors.hh>
 #include <dune/pdelab/backend/istl/bcrsmatrixbackend.hh>
 #include <dune/pdelab/newton/newton.hh>
+#include <dune/pdelab/constraints/conforming.hh>
 
+#include "parameters.hh"
 #include "integration.hh"
 #include "bctype.hh"
 #include "space_operator.hh"

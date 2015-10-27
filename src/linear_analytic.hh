@@ -285,9 +285,6 @@ void AnalyticSolution<Params>::integrate_alpha_bdry(double tend){
 		// there is no need for integration -- this situation is possibly an error.
 		return;
 	}
-//	auto tmp = o2scl::err_hnd; -- do not return old handler
-	auto new_err_hnd = new o2scl::err_hnd_cpp();
-	o2scl::err_hnd =  new_err_hnd;
 	o2scl::funct11 f = std::bind(std::mem_fn<double(double)const>(&AnalyticSolution<Params>::a_g),
 	    		                 this, std::placeholders::_1);
 
@@ -316,8 +313,6 @@ void AnalyticSolution<Params>::integrate_alpha_bdry(double tend){
     	print_tau(std::cerr);
     	throw std::runtime_error("AnalyticSolution<Params>::integrate_alpha_bdry: ordering incorrect!");
     }
-//	o2scl::err_hnd = tmp;  -- no need. Poses a problem in parallel
-//	delete new_err_hnd;
 }
 
 // just for debugging
@@ -340,9 +335,6 @@ void AnalyticSolution<Params>::calculate_flux(){
 
       o2scl::funct11 fprim = std::bind(std::mem_fn<double(double,double)>(&AnalyticSolution<Params>::dg_dt_shifted),
     		                           this, std::placeholders::_1, std::cref(t));
-//     auto tmp = o2scl::err_hnd; -- we do not return old handler
-      auto new_err_hnd =  new o2scl::err_hnd_cpp();
-      o2scl::err_hnd = new_err_hnd;
 //      o2scl::inte_qag_gsl<> inte_formula;
       o2scl::inte_adapt_cern<o2scl::funct11, 2000> inte_formula;
       inte_formula.tol_rel = 1.0e-6;
@@ -364,9 +356,6 @@ void AnalyticSolution<Params>::calculate_flux(){
          t += dt;
       }
 
-//      o2scl::err_hnd = tmp;
-//      delete new_err_hnd;
-
       return;
 }
 
@@ -380,9 +369,6 @@ void AnalyticSolution<Params>::calculate_flux_beta(){
 
       o2scl::funct11 fprim = std::bind(std::mem_fn<double(double,double)>(&AnalyticSolution<Params>::dbetag_dt_shifted),
     		                           this, std::placeholders::_1, std::cref(t));
-//     auto tmp = o2scl::err_hnd; -- we do not return old handler
-      auto new_err_hnd =  new o2scl::err_hnd_cpp();
-      o2scl::err_hnd = new_err_hnd;
 //      o2scl::inte_qag_gsl<> inte_formula;
       o2scl::inte_adapt_cern<o2scl::funct11, 2000> inte_formula;
       inte_formula.tol_rel = 1.0e-5;
@@ -403,9 +389,6 @@ void AnalyticSolution<Params>::calculate_flux_beta(){
     //    std::cout << "err = " << err << "\n";
          t += dt;
       }
-
-//      o2scl::err_hnd = tmp;
-//      delete new_err_hnd;
 
       return;
 }
@@ -436,9 +419,6 @@ void AnalyticSolution<Params>::calculate_solution(double time) {
 			this, std::placeholders::_1, std::cref(time));
 //	  o2scl::inte_qag_gsl<> inte_formula;
     o2scl::inte_adapt_cern<o2scl::funct11, 2000> inte_formula;
-//    auto tmp = o2scl::err_hnd;
-    auto new_err_hnd = new o2scl::err_hnd_cpp();
-    o2scl::err_hnd =  new_err_hnd;
 
 	double lb, ub, res1, res2, err;
 	if (time == 0.0)
@@ -464,8 +444,6 @@ void AnalyticSolution<Params>::calculate_solution(double time) {
 			lin_solution[i].second = bdry(0.0) + res1 + res2;
 		}
 
-//    o2scl::err_hnd = tmp;
-//    delete new_err_hnd;
 	return;
 }
 
