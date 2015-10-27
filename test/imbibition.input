@@ -3,7 +3,7 @@ Porosity = 0.4
 Delta = 1.0E-4             #  1E-3    5E-4    1E-4     5E-5
 Theta = 1.0                     # Theta \in (0,1] ; Theta = 1 --> mean value over whole interval 0.65 najbolji
 DtBdry = 0.8                 #     
-Model = MG
+Model = GN
 #Model = constant_linear [C]
 #Model = variable_linear [V]
 #Model = variable_new    [Z]
@@ -26,7 +26,7 @@ FluxFunction = 1   # 0 = artificial
                    # 1 = van Genuchten
 [Grid]
 Length = 1.0  # Length of the side of the grid
-NPoints  = 1000 #  No of points in each coordinate direction 
+NPoints  = 100 #  No of points in each coordinate direction 
 Q = 0.3  # portion of the mesh points used to resolve BL
 Sigma = 1 # Grading of the mesh inside the layer (?)
 

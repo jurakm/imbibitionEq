@@ -69,18 +69,25 @@ int chernoff_driver(GV const& gv, Params params)  // take a copy of params
     Dune::PDELab::interpolate(g, gfs, uold); // the initial and boundary conditions
     DGF udgf_old(gfs, uold);
     
+    U unew(gfs, 0.0);
+    DGF udgf_new(gfs, unew);
+    DGFG grad_udgf_new(gfs, unew);
+    
     MBE mbe(9);
     LOP lop(bctype, params, udgf_old, timeMng.dt, 4);
     GO go(gfs, cc, gfs, cc, lop, mbe);
 
     bool verbose = false; //true;
     LS ls(5000, verbose);
-    PDESOLVER pdesolver(go, ls);
+    PDESOLVER pdesolver(go, unew, ls);
     pdesolver.setParameters(params.input_data.sub("NewtonParameters"));
-    pdesolver.setVerbosityLevel(0);
+    pdesolver.setVerbosityLevel(2);
 
     std::vector<std::pair<double, double> > volume_values; // (t, int (t))
     std::vector<std::pair<double, double> > bdry_values;  // (t, int (t))
+ 
+ //   typename GO::Traits::Jacobian jac(go);
+ //   std::cout << jac.patternStatistics()<< std::endl;
 
 
     // File name and variable name depending on the model
@@ -122,9 +129,7 @@ int chernoff_driver(GV const& gv, Params params)  // take a copy of params
     }
 
     // <<<12>>> the time loop
-    U unew(gfs, 0.0);
-    DGF udgf_new(gfs, unew);
-    DGFG grad_udgf_new(gfs, unew);
+  
     
     while (!timeMng.done()) {
         ++timeMng;
