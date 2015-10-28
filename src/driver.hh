@@ -167,6 +167,7 @@ int driver(GV const& gv, Params params)  // take a copy of params
 		bctype.setTime(timeMng.time);
 		cc.clear();
 		Dune::PDELab::constraints(bctype, gfs, cc);
+ //       std::cout << "dt = " << timeMng.dt << " ";
 		double dt_applied = osm.apply(timeMng.time - timeMng.dt, timeMng.dt, uold, g, unew);
 
 		if (dt_applied != timeMng.dt) {
@@ -180,7 +181,7 @@ int driver(GV const& gv, Params params)  // take a copy of params
 
 		//int noIter = osm.getPDESolver().ls_result().iterations;
 		int noIter = osm.getPDESolver().result().iterations;
-//      std::cout << "no of nonlinear iterations = " << noIter << "\n";
+ //       std::cout << "no of nonlinear iterations = " << noIter << "\n";
 		// kontrola vremenskog koraka
 		timeMng.set_requested_dt(noIter);
 		// graphics
