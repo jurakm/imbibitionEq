@@ -14,7 +14,13 @@
 
 /**  @brief Class for calculation of volume and boundary integrals.
  *
- *
+ *   This class calculates and stores 1) boundary integral
+ *    \f[  \int_{\partial Y} \nabla \beta (S) d\sigma \quad \mbox{or}\quad  a(g(t))\int_{\partial Y} \nabla S d\sigma,\f]
+ *   at different times \f$t\f$; 2) volume integrals
+ *    \f[  \Phi \int_Y S(x,t) dx\f]
+ * at different times \f$t\f$ and then calculates numerically (method volume_derivative())
+ *    \f[  \Phi \frac{d}{dt}\int_Y S(x,t) dx.\f]
+ *    Method print() prints these valuesto a file. Method integrate() calculates both types of integrals. 
  *
  */
 class Integration{
@@ -72,15 +78,13 @@ void Integration::print(std::string const & file_name, Params const & params) {
 							+ std::to_string(time) + " "
 							+ std::to_string(bdry_values[i].first));
 
-		out1 << std::setw(10) << std::setprecision(4) << time
-				<< " "  // time
+		out1 << std::setw(10) << std::setprecision(4) << time << " "  
 				<< std::setw(12) << std::setprecision(6)
 				<< params.poro * volume_values_der[i].second; //  " = d/dt int S"
 		if (params.model == Params::nonlinear)
 			out1 << "                 " << std::setw(12) << std::setprecision(6)
-					<< params.alpha(params.bdry(time)) * kdd
-							* bdry_values[i].second;
-		else{  // a_g is also good for new_nonlinear
+					<< params.alpha(params.bdry(time)) * kdd * bdry_values[i].second;
+		else{  // a_g is also good for new_nonlinear and chernoff 
 			out1 << "                 " << std::setw(12) << std::setprecision(6)
 					<< params.a_g(time) * kdd * bdry_values[i].second;
 		}
@@ -98,8 +102,7 @@ void Integration::print(std::string const & file_name, Params const & params) {
 //					<< params.mean_alpha * kdd * bdry_values[i].second;
 //		// "= k delta^2 mean_alpha int bdry grad S .n  "
 
-		out1 << "             " << std::setw(12) << std::setprecision(6)
-				<< params.bdry(time) << "\n";
+		out1 << "             " << std::setw(12) << std::setprecision(6) << params.bdry(time) << "\n";
 	}
 	out1.close();
 }
@@ -111,10 +114,11 @@ void Integration::volume_derivative(){
 		double dS0 = volume_values[1].second - volume_values[0].second;
 		volume_values_der[0] = std::make_pair(volume_values[0].first, dS0 / dt0);
 
+        // central differences may give more precise result than boundary integration.
 		unsigned int nn = volume_values.size() - 1;
 		for (unsigned int i = 1; i < nn; ++i) {
-			double dt = volume_values[i + 1].first - volume_values[i - 1].first;
-			double dS = volume_values[i + 1].second - volume_values[i - 1].second;
+            double dt = volume_values[i + 1].first - volume_values[i - 1].first;
+            double dS = volume_values[i + 1].second - volume_values[i - 1].second;
 
 			volume_values_der[i] = std::make_pair(volume_values[i].first, dS / dt);
 		}
@@ -156,8 +160,7 @@ double Integration::volume_integral(DGF const & dgf, int order) {
 	auto el_it = gv.template begin<0>();
 	for (; el_it != gv.template end<0>(); ++el_it) {
 		const auto & gtype = el_it->geometry().type();
-		const auto & rule = Dune::QuadratureRules<double, dim>::rule(gtype,
-				order);
+		const auto & rule = Dune::QuadratureRules<double, dim>::rule(gtype, order);
 
 		double elemIntegral = 0.0;
 		for (auto ii = rule.begin(); ii != rule.end(); ++ii) {

@@ -146,6 +146,7 @@ int main(int argc, char** argv) {
 			}
 			// print execution times
 			unsigned int ii = -1;
+            
 			for (unsigned int i = 0; i < params.size; ++i) {
 				if (params.simulation[i])
 				{

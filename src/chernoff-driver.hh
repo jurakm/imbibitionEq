@@ -19,7 +19,7 @@
 
 /** Driver routine coordinating all calculations except the grid construction.
  *
- *  @tparam GV = Leaf grid view tip 
+ *  @tparam GV = Leaf grid view type
  *  @tparam Params = Parameters class
  *
  *  @param gv = leaf grid view 
@@ -81,7 +81,7 @@ int chernoff_driver(GV const& gv, Params params)  // take a copy of params
     LS ls(5000, verbose);
     PDESOLVER pdesolver(go, unew, ls);
     pdesolver.setParameters(params.input_data.sub("NewtonParameters"));
-    pdesolver.setVerbosityLevel(2);
+    pdesolver.setVerbosityLevel(0);
 
     std::vector<std::pair<double, double> > volume_values; // (t, int (t))
     std::vector<std::pair<double, double> > bdry_values;  // (t, int (t))
@@ -134,15 +134,18 @@ int chernoff_driver(GV const& gv, Params params)  // take a copy of params
     while (!timeMng.done()) {
         ++timeMng;
         // postavi novo vrijeme u BC klasu
-        bctype.setTime(timeMng.time);
+//         bctype.setTime(timeMng.time);
         lop.setDt(timeMng.dt);
         lop.setTime(timeMng.time);
-//        cc.clear();
-//        Dune::PDELab::constraints(bctype, gfs, cc);
+        g.setTime(timeMng.time);
+        go.interpolate(uold, g, unew);  // interpolate from uold (interior) and g (boundary)
+//         cc.clear();
+//         Dune::PDELab::constraints(bctype, gfs, cc);
+//        std::cout << "dt = " << timeMng.dt << " ";
         pdesolver.apply();
 
         int noIter = pdesolver.result().iterations;
-        std::cout << "no of nonlinear iterations = " << noIter << "\n";
+ //       std::cout << "no of nonlinear iterations = " << noIter << "\n";
         // kontrola vremenskog koraka
         timeMng.set_requested_dt(noIter);
         // graphics
@@ -159,21 +162,21 @@ int chernoff_driver(GV const& gv, Params params)  // take a copy of params
             textwriter.write(filenm + std::to_string(count) + ".txt");
         }
         ////////////////////////////
-        if(params.model != Params::new_nonlinear){
-           integrator.integrate(timeMng.time, udgf_new, grad_udgf_new);
-        }
-        else{
+        if(params.model == Params::new_nonlinear or params.model == Params::chernoff){
             U beta_u(gfs, 0.0);
             auto  bit = beta_u.begin();
             for(auto it = unew.begin(); it != unew.end(); ++it, ++bit) *bit = params.beta(*it);
             DGFG grad_beta_udgf(gfs, beta_u);
             integrator.integrate(timeMng.time, udgf_new, grad_beta_udgf);
         }
+        else{
+           integrator.integrate(timeMng.time, udgf_new, grad_udgf_new);
+        }
 
         uold = unew;
         //     std::cout << "t = " << timeMng.time << " (dt = " << timeMng.dt << ")\n";
     }
-
+    // Calculate the derivative of volume integral and print the results. 
     integrator.volume_derivative();
     integrator.print(filenm + "-flux.txt", params);
     auto end = std::chrono::system_clock::now();

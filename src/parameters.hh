@@ -246,7 +246,7 @@ struct Params{
 	 *  */
 	double a_g(double t) const {
 		static const double TOL = 1.0e-5;
-		double val = 1.0; // good value for Params::new_nonlinear -- important.
+		double val = 1.0; // good value for Params::new_nonlinear and chernoff -- important.
 		if (model == analytic_const or model == constant_linear)
 			val = mean_alpha;
 		else if (model == analytic_var or model == variable_linear)
@@ -259,7 +259,8 @@ struct Params{
 				val = (beta(Yt) - beta(Yt - dS * theta)) / (dS * theta);
 			} else
 				val = alpha(Yt);
-		} else if (model == Params::analytic_new1) {
+		} 
+		else if (model == Params::analytic_new1) {
 			const double Yt = bdry(t);
 			const double Yt0 = (t > dt_bdry) ? bdry(t - dt_bdry) : bdry(0.0);
 			const double dS = Yt - Yt0;

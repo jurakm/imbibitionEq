@@ -42,15 +42,10 @@ class LocalOperator:
         public Dune::PDELab::FullVolumePattern,
         public Dune::PDELab::LocalOperatorDefaultFlags {
 public:
-    // pattern assembly flags
-    enum {
-        doPatternVolume = true
-    };
+    enum { doPatternVolume = true };
+    enum { doAlphaVolume = true };
+    enum { doLambdaVolume = true };
 
-    // residual assembly flags
-    enum {
-        doAlphaVolume = true
-    };
     /// Constructor
     LocalOperator(const BCType& bctype_, const Params& coeff_, DGF const & dgf, double  dt, unsigned int intorder_ = 3) :
             time_(0.0), dt_(dt), bctype(bctype_), coeff(coeff_), dgf_(dgf),  intorder(intorder_) {
@@ -64,8 +59,7 @@ public:
     
     // volume integral depending on test and ansatz functions
     template<typename EG, typename LFSU, typename X, typename LFSV, typename R>
-    void alpha_volume(const EG& eg, const LFSU& lfsu, const X& x,
-            const LFSV& lfsv, R& r) const {
+    void alpha_volume(const EG& eg, const LFSU& lfsu, const X& x, const LFSV& lfsv, R& r) const {
         // assume Galerkin: lfsu == lfsv
         // This yields more efficient code since the local function space only
         // needs to be evaluated once, but would be incorrect for a finite volume
@@ -133,14 +127,46 @@ public:
                 for (size_type i = 0; i < lfsu.size(); ++i)
                     gradu.axpy(x(lfsu, i), gradphi[i]);
             }
+            // integrate grad u * grad phi_i
+            RF factor = it->weight() * eg.geometry().integrationElement(it->position());
+            for (size_type i = 0; i < lfsu.size(); ++i)
+                r.accumulate(lfsu, i, poro * ( u/dt_) * phi[i] * factor  +  alpha * (gradu * gradphi[i]) * factor);
+        }
+    }
+     // volume integral depending only on test functions
+     // Access to dgf is localized here.
+     template<typename EG, typename LFSV, typename R>
+     void lambda_volume ( const EG& eg, const LFSV& lfsv, R& r ) const {
+       // dimensions
+        const int dim  = EG::Geometry::mydimension;
+        const int dimw = EG::Geometry::coorddimension;
+
+        // extract some types
+        typedef typename LFSV::Traits::FiniteElementType::Traits::LocalBasisType::Traits LBTraits;
+        typedef typename LBTraits::DomainFieldType DF;
+        typedef typename LBTraits::RangeFieldType  RF;
+        typedef typename LBTraits::RangeType       Range;
+        typedef typename LFSV::Traits::SizeType   size_type;
+
+        // select quadrature rule
+        Dune::GeometryType gt = eg.geometry().type();
+        const Dune::QuadratureRule<DF, dim>& rule = Dune::QuadratureRules<DF,dim>::rule(gt, intorder);
+
+        const double poro = coeff.poro;
+        // loop over quadrature points
+        for (auto it = rule.begin(); it != rule.end(); ++it) {
+            // evaluate basis functions on reference element
+            std::vector<Range> phi(lfsv.size());
+            lfsv.finiteElement().localBasis().evaluateFunction(it->position(), phi);
+
             typename DGF::Traits::RangeType u_old;
             dgf_.evaluate(eg.entity(), it->position(), u_old);
             // integrate grad u * grad phi_i
             RF factor = it->weight() * eg.geometry().integrationElement(it->position());
-            for (size_type i = 0; i < lfsu.size(); ++i)
-                r.accumulate(lfsu, i, poro * ( (u-u_old)/dt_) * phi[i] * factor  +  alpha * (gradu * gradphi[i]) * factor);
+            for (size_type i = 0; i < lfsv.size(); ++i)
+                r.accumulate(lfsv, i, - poro * ( u_old/dt_) * phi[i] * factor );
         }
-    }
+     }
 
 protected:
     double time_;

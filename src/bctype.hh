@@ -46,19 +46,20 @@ public:
                         const typename Traits::DomainType& xlocal,
                         typename Traits::RangeType& y) const
   {
-      const double TOL = 1e-10;
-      auto xglobal = e.geometry().global(xlocal);
-      double L = params.L;
-      int dim = GV::dimension;
-      if(time == 0.0) y = 0.0; // initial condition
-      else            y = params.bdry(time);
-
-      y = params.bdry(0.0);  // hack
-
-      for(int d = 0; d < dim; ++d){
-           if(xglobal[d] < TOL or xglobal[d] > L - TOL) // this is the boundary condition
-              y = params.bdry(time);
-      }
+//       const double TOL = 1e-10;
+//       auto xglobal = e.geometry().global(xlocal);
+//       double L = params.L;
+//       int dim = GV::dimension;
+//       if(time == 0.0) y = 0.0; // initial condition
+//       else            y = params.bdry(time);
+// 
+//       y = params.bdry(0.0);  // hack
+// 
+//       for(int d = 0; d < dim; ++d){
+//            if(xglobal[d] < TOL or xglobal[d] > L - TOL) // this is the boundary condition
+//               y = params.bdry(time);
+//       }
+       y = params.bdry(time);
       return;
   }
 
