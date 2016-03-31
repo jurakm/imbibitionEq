@@ -259,10 +259,10 @@ struct Params{
 			val = alpha(bdry(t));
 		else if (model == analytic_new or model == variable_new) {
 			// we have the best results with theta = 0.75.
-			const double Yt = bdry(t);
-			const double dS = Yt - bdry(0.0);
-			if (std::abs(dS * theta) > TOL) {
-				val = (beta(Yt) - beta(Yt - dS * theta)) / (dS * theta);
+			const double Yt = bdry(t), Yt0 = bdry(0.0);
+			const double dS = Yt - Yt0;
+			if (std::abs(dS) > TOL * std::max(Yt,Yt0)) {
+				val = (beta(Yt) - beta(Yt0)) / (dS);
 			} else
 				val = alpha(Yt);
 		} 
@@ -284,7 +284,7 @@ struct Params{
    // Porous media
    double k = 0.0;       ///< permeability
    double poro = 0.0;    ///< porosity
-   double theta = 1.0;   ///< a factor in calculating the mean value of diffusion coefficient
+  // double theta = 1.0;   ///< a factor in calculating the mean value of diffusion coefficient
    double dt_bdry = 0.0; ///< a dt in calculating the mean value of diffusion coefficient
    // Grid generation parameters
    double delta = 0.0;   ///< \f$\delta\f$ parameter
@@ -422,7 +422,7 @@ Params::Params(std::string const & file_name) :	default_file_name(file_name) {
    k         =  input_data.get<double>      ("Permeability");
    poro      =  input_data.get<double>      ("Porosity");
    delta     =  input_data.get<double>      ("Delta");
-   theta     =  input_data.get<double>      ("Theta");
+ //  theta     =  input_data.get<double>      ("Theta");
    dt_bdry   =  input_data.get<double>      ("DtBdry");
 //    acom      =  input_data.get<double>      ("AlphaCutOffMultiplier");
    level     =  input_data.get<int>         ("Refinement.Level");

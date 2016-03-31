@@ -218,7 +218,7 @@ AnalyticSolution<Params>::AnalyticSolution(Params const & params) :
 	double perm = params.k;
 	double poro = params.poro;
 	double mean_alpha = params.mean_alpha;
-	theta = params.theta;
+//	theta = params.theta;
 	dt_bdry = params.dt_bdry;
 	scaled_delta = params.scaled_delta;
 //   	scaled_delta = delta * std::sqrt(perm*mean_alpha/poro);
