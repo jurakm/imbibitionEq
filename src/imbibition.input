@@ -1,6 +1,6 @@
-Permeability =  6.912E4     # 2.592E5 6.912E4 2.592E3 6.739E2
+Permeability =  1E2         # 2.592E5 6.912E4 2.592E3 6.739E2
 Porosity = 0.4
-Delta = 5E-4             #  1E-3    5E-4    1E-4     5E-5
+Delta = 1E-4             #  1E-3    5E-4    1E-4     5E-5
 Model = CVZNMAG
 #Model = constant_linear [C]
 #Model = variable_linear [V]
@@ -11,7 +11,7 @@ Model = CVZNMAG
 #Model = var   analytic  [B]
 #Model = new   analytic  [E]
 #Model = chernoff        [G]
-BoundaryFunction = 4 # 0 = 0.35 + 0.2 * sin(2*PI*t)
+BoundaryFunction = 5 # 0 = 0.35 + 0.2 * sin(2*PI*t)
                      # 1 = ((0.9-0.1)/PI)*atan((2*t-1)/0.1)+(0.9+0.1)/2
                      # 2 = -((0.9-0.1)/PI)*atan((2*t-1)/0.1)+(0.9+0.1)/2
                      # 3 = 0.35 - 0.2* std::sin(2*M_PI*t)
