@@ -1,8 +1,7 @@
-Permeability = 2.592E3     # 2.592E5 6.912E4 2.592E3 6.739E2
+Permeability =  6.912E4     # 2.592E5 6.912E4 2.592E3 6.739E2
 Porosity = 0.4
-Delta = 1.0E-4             #  1E-3    5E-4    1E-4     5E-5
-DtBdry = 0.8                 #     
-Model = ZE
+Delta = 5E-4             #  1E-3    5E-4    1E-4     5E-5
+Model = CVZNMAG
 #Model = constant_linear [C]
 #Model = variable_linear [V]
 #Model = variable_new    [Z]
@@ -12,7 +11,7 @@ Model = ZE
 #Model = var   analytic  [B]
 #Model = new   analytic  [E]
 #Model = chernoff        [G]
-BoundaryFunction = 5 # 0 = 0.35 + 0.2 * sin(2*PI*t)
+BoundaryFunction = 4 # 0 = 0.35 + 0.2 * sin(2*PI*t)
                      # 1 = ((0.9-0.1)/PI)*atan((2*t-1)/0.1)+(0.9+0.1)/2
                      # 2 = -((0.9-0.1)/PI)*atan((2*t-1)/0.1)+(0.9+0.1)/2
                      # 3 = 0.35 - 0.2* std::sin(2*M_PI*t)
@@ -24,7 +23,7 @@ FluxFunction = 1   # 0 = artificial
                    # 1 = van Genuchten
 [Grid]
 Length = 1.0     # Length of the side of the grid
-NPoints  = 10000 #  No of points in each coordinate direction 
+NPoints  = 2000 #  No of points in each coordinate direction 
 Q = 0.3          # portion of the mesh points used to resolve BL
 Sigma = 1        # Grading of the mesh inside the layer (?)
 
@@ -57,7 +56,7 @@ TXT = 1   # 0=false, 1=true
 
 [Fluids]
 WettingViscosity =  1         # cP
-NonWettingViscosity = 2     # cP
+NonWettingViscosity = 2       # cP
 
 [Matrix-VanGenuchten]
 Alpha = 1.0          # 1/bar 

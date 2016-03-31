@@ -284,7 +284,6 @@ struct Params{
    // Porous media
    double k = 0.0;       ///< permeability
    double poro = 0.0;    ///< porosity
-  // double theta = 1.0;   ///< a factor in calculating the mean value of diffusion coefficient
    double dt_bdry = 0.0; ///< a dt in calculating the mean value of diffusion coefficient
    // Grid generation parameters
    double delta = 0.0;   ///< \f$\delta\f$ parameter
@@ -421,10 +420,7 @@ Params::Params(std::string const & file_name) :	default_file_name(file_name) {
 
    k         =  input_data.get<double>      ("Permeability");
    poro      =  input_data.get<double>      ("Porosity");
-   delta     =  input_data.get<double>      ("Delta");
- //  theta     =  input_data.get<double>      ("Theta");
-   dt_bdry   =  input_data.get<double>      ("DtBdry");
-//    acom      =  input_data.get<double>      ("AlphaCutOffMultiplier");
+   delta     =  input_data.get<double>      ("Delta"); 
    level     =  input_data.get<int>         ("Refinement.Level");
    N         =  input_data.get<int>         ("Grid.NPoints");
    q         =  input_data.get<double>      ("Grid.Q");
