@@ -1,20 +1,27 @@
-Permeability = 1.0
-Porosity = 1.0
-Delta = 0.05
-AlphaCutOffMultiplier =  1.0E-3
-Model = CVA
+Permeability = 2.592E3     # 2.592E5 6.912E4 2.592E3 6.739E2
+Porosity = 0.4
+Delta = 1.0E-4             #  1E-3    5E-4    1E-4     5E-5
+Theta = 1.0                     # Theta \in (0,1] ; Theta = 1 --> mean value over whole interval 0.65 najbolji
+DtBdry = 0.8                 #     
+Model = CVZNMABEG
 #Model = constant_linear [C]
 #Model = variable_linear [V]
+#Model = variable_new    [Z]
 #Model = nonlinear       [N]
 #Model = new_nonlinear   [M]
 #Model = const analytic  [A]
-BoundaryFunction = 0 # 0 = 0.35 + 0.2 * sin(2*PI*t)
+#Model = var   analytic  [B]
+#Model = new   analytic  [E]
+#Model = chernoff        [G]
+BoundaryFunction = 5 # 0 = 0.35 + 0.2 * sin(2*PI*t)
                      # 1 = ((0.9-0.1)/PI)*atan((2*t-1)/0.1)+(0.9+0.1)/2
                      # 2 = -((0.9-0.1)/PI)*atan((2*t-1)/0.1)+(0.9+0.1)/2
                      # 3 = 0.35 - 0.2* std::sin(2*M_PI*t)
-                     # 4 = 0.5 + 0.49* std::sin(2*M_PI*t)
-                     # 5 = 1.0
-FluxFunction = 0   # 0 = artificial 
+                     # 4 = 0.5 + 0.45* std::sin(2*M_PI*t)
+                     # 5 = 0.05 + min(t,0.9)
+                     # 6 = 0.05 + min(t/10.0, 0.9)
+                     # 7 = 0.05 + min(t/50.0, 0.9)
+FluxFunction = 1   # 0 = artificial 
                    # 1 = van Genuchten
 [Grid]
 Length = 1.0  # Length of the side of the grid
@@ -24,7 +31,7 @@ Sigma = 1 # Grading of the mesh inside the layer (?)
 
 [Time]
 Final = 1
-Dt    = 0.0000001
+Dt    = 0.001
 DtOut = 0.01
 DtMax = 0.01
 
@@ -42,16 +49,20 @@ AbsoluteLimit = 1e-10
 Reduction = 1e-9
 LinearReduction = 1e-6
 LineSearchDamping = 0.9
+VerbosityLevel = 0
 
 [Output]
-SimulationBaseName = del_0.05
+SimulationBaseName = d
 VTK = 0   # 0=false, 1=true
 TXT = 1   # 0=false, 1=true
 
 [Fluids]
-WettingViscosity =  1E-3
-NonWettingViscosity = 0.8E-3
+WettingViscosity =  1         # cP
+NonWettingViscosity = 2     # cP
 
-[VanGenuchten]
-Alpha = 2.0
+[Matrix-VanGenuchten]
+Alpha = 1.0          # 1/bar 
+N    = 2.0
+[Fracture-VanGenuchten]
+Alpha = 5.0           # 1/bar 
 N    = 2.0

@@ -96,77 +96,78 @@ int main(int argc, char** argv) {
 		Params params;
 		params.read_input(argc, argv);
 
-		// sequential version
-		if (helper.size() == 1) {
-			const int dim = 1;
-
-			// Construct 1D Bakhvalov grid which is able to resolve boundary layers
-			// and use the Cartesian product of this 1D grid.
-			std::vector<double> line;
-			MGF<Params> mgf(params);  // mesh generating function
-			mgf.double_side_interval(line);
-			// Write down the grid points
-			std::ofstream grid_pts(params.date_and_time+"/grid_pts.txt");
-			for (auto & x : line)
-				grid_pts << x << "\n";
-			grid_pts.close();
-			// make a tensor product grid
-			Dune::array<std::vector<double>, dim> coords;
-			for (auto& v : coords)
-				v = line;
-			typedef Dune::YaspGrid<dim, Dune::TensorProductCoordinates<double, dim> > Grid;
-			Grid grid(coords);
-
-			grid.globalRefine(params.level);
-			typedef Grid::LeafGridView GV;
-			const auto& gv = grid.leafGridView();
-
-            // Set O2SCL error handler 
-            auto tmp = o2scl::err_hnd; 
-            auto new_err_hnd = new o2scl::err_hnd_cpp();
+		// sequential version 
+		if (helper.size() != 1)
+            throw std::runtime_error("Please launch program in a sequential mode. Aborting.");
             
-			// Numerical models launch as parallel jobs.
-			std::vector<std::future<int>> rets;  // execution times (in secs) for numerical models (parallel jobs)
-//			int anC = 0, anV=0, anN=0, an1=0; // execution times (in secs) for analytic model (serial)
-			for(unsigned int i = 0; i < params.size; ++i){
-				if(params.simulation[i])
-				{
-				   params.model = static_cast<Params::Model>(i);
-				   std::cout << "Model " << i << " launched.\n";
-                   if(i != Params::chernoff)
-    			   rets.push_back(std::async(std::launch::async, driver<GV, Params>, gv, params));
-                   else
+        const int dim = 1;
+
+        // Construct 1D Bakhvalov grid which is able to resolve boundary layers
+        // and use the Cartesian product of this 1D grid.
+        std::vector<double> line;
+        MGF<Params> mgf(params);  // mesh generating function
+        mgf.double_side_interval(line);
+        // Write down the grid points
+        std::ofstream grid_pts(params.date_and_time+"/grid_pts.txt");
+        for (auto & x : line)
+            grid_pts << x << "\n";
+        grid_pts.close();
+        // make a tensor product grid
+        Dune::array<std::vector<double>, dim> coords;
+        for (auto& v : coords)
+            v = line;
+        typedef Dune::YaspGrid<dim, Dune::TensorProductCoordinates<double, dim> > Grid;
+        Grid grid(coords);
+
+        grid.globalRefine(params.level);
+        typedef Grid::LeafGridView GV;
+        const auto& gv = grid.leafGridView();
+
+        // Set O2SCL error handler 
+        auto tmp = o2scl::err_hnd; 
+        auto new_err_hnd = new o2scl::err_hnd_cpp();
+            
+        // Numerical models launch as parallel jobs.
+        std::vector<std::future<int>> rets;  // execution times (in secs) for numerical models (parallel jobs)
+//		int anC = 0, anV=0, anN=0, an1=0; // execution times (in secs) for analytic model (serial)
+        for(unsigned int i = 0; i < params.size; ++i){
+            if(params.simulation[i])
+            {
+                params.model = static_cast<Params::Model>(i);
+                std::cout << "Model " << i << " launched.\n";
+                if(i != Params::chernoff)
+                   rets.push_back(std::async(std::launch::async, driver<GV, Params>, gv, params));
+                else
                    rets.push_back(std::async(std::launch::async, chernoff_driver<GV, Params>, gv, params));
-				}
-			}
-			// wait for all threads to complete before calling gnu_compare_c().
-			std::cout << "Waiting...\n";
-			for (unsigned int i = 0; i < rets.size(); ++i) {
-				rets[i].wait();
-			}
-			// print execution times
-			unsigned int ii = -1;
+            }
+        }
+        // wait for all threads to complete before calling gnu_compare_c().
+        std::cout << "Waiting...\n";
+        for (unsigned int i = 0; i < rets.size(); ++i) {
+            rets[i].wait();
+        }
+        // print execution times
+        unsigned int ii = -1;
             
-			for (unsigned int i = 0; i < params.size; ++i) {
-				if (params.simulation[i])
-				{
-					ii++;
-					std::cout << " Time for " << params.simulation_names[i]
-							<< " is = " << rets[ii].get() << " sec\n";
-				}
-			}
+        for (unsigned int i = 0; i < params.size; ++i) {
+            if (params.simulation[i])
+            {
+                ii++;
+                std::cout << " Time for " << params.simulation_names[i]
+                        << " is = " << rets[ii].get() << " sec\n";
+            }
+        }
 
-			// Gnuplot control file for displaying the solution output is given only in 1D
-			if(dim == 1) aux::gnu_output_solution(params);
-			// Write gnuplot control file for displaying the fluxes.
-			aux::gnu_compare_c(params);
+        // Gnuplot control file for displaying the solution output is given only in 1D
+        if(dim == 1) aux::gnu_output_solution(params);
+        // Write gnuplot control file for displaying the fluxes.
+        aux::gnu_compare_c(params);
             
-            // O2SCL. Restore old error handler.
-            o2scl::err_hnd = tmp;  
-            delete new_err_hnd;
+        // O2SCL. Restore old error handler.
+        o2scl::err_hnd = tmp;  
+        delete new_err_hnd;
             
-		}
-
+		
 		Dune::dinfo.detach();
 		mylog.close();
 	} catch (Dune::Exception &e) {

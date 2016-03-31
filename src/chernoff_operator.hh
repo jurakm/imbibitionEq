@@ -97,7 +97,7 @@ public:
             double alpha = coeff.k * coeff.delta * coeff.delta;
 
             if (coeff.model == Params::nonlinear)
-                alpha *= coeff.alpha(u);
+                alpha *= coeff.alpha(u);  // ovo nije moguće
             else
                 alpha *= coeff.a_g(time_);
 

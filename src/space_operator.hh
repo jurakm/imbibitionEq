@@ -12,12 +12,16 @@
 
 #include <stdexcept>
 #include "parameters.hh"
-/** Space part of a local operator for solving the equation
+/** Space part of a local operator for solving the nonlinear imbibition equation:
  *
- *   Phi dS/dt - delta^2 k div(a(S) grad S) = 0   in \Omega x (0,T)
- *                  S = g   on \partial\Omega x (0,T)
+ *  \f[ Phi dS/dt - delta^2 k div(a(S) grad S) = 0   in Y x (0,T)\f]
+ *              \f[    S = g(t)   on \partial Y x (0,T)\f]
  *
- * with conforming finite elements
+ * and linearized imbibition equation:
+ *   \f[ Phi dS/dt - delta^2 k a_g(t) div( grad S) = 0   in Y x (0,T)\f]
+ *              \f[    S = g(t)   on \partial Y x (0,T)\f]
+ * with conforming finite elements. The functiona \f$a_g\f$ depends on chosen 
+ * model.
  *
  * \tparam BCType parameter class indicating the type of boundary condition
  */
@@ -87,6 +91,7 @@ public:
 
 			double alpha = coeff.k * coeff.delta * coeff.delta;
 
+            // Note that function a_g depends on chosen linear model.
 			if (coeff.model == Params::nonlinear)
 				alpha *= coeff.alpha(u);
 			else

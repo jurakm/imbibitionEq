@@ -148,7 +148,7 @@ void gnu_compare_c(Params const & params){
 							  Params::variable_new}, "-cmp");
 	params.gnu_compare_c({Params::constant_linear,Params::analytic_const}, "-const");
 	params.gnu_compare_c({Params::analytic_var, Params::analytic_new,
-		Params::variable_linear, Params::variable_new, Params::analytic_new1}, "-var");
+		Params::variable_linear, Params::variable_new}, "-var");
 
 }
 
@@ -186,7 +186,7 @@ struct Params{
 	/// Constants describing different imbibition models.
 	enum Model{
 	  new_nonlinear=0, nonlinear, constant_linear, variable_linear, variable_new, chernoff,
-	  analytic_const, analytic_var, analytic_new, analytic_new1, size
+	  analytic_const, analytic_var, analytic_new, size
 	};
  /**
   * Read all parameters from an input file. It must be called explicitly
@@ -240,7 +240,13 @@ struct Params{
 			return ptfun[function_index](t);
 		return bdry_transfer(ptfun[function_index](t));
 	}
-
+     ///  \f$\alpha_m({\cal P}(S))\f$  nonlinear diffusivity coefficient in the matrix 
+     /// composed with the boundary transfer function
+	double alphaP(double u) const
+   {
+     if(flux_funct_index == 0) return aImbFun.alpha(u);
+     return vgImbFunMatrix.alpha(bdry_transfer(u));
+   }
 	/** Linearized diffusivity coefficient. For different models we have
 	 *  different functions.
 	 *  */
@@ -260,15 +266,10 @@ struct Params{
 			} else
 				val = alpha(Yt);
 		} 
-		else if (model == Params::analytic_new1) {
-			const double Yt = bdry(t);
-			const double Yt0 = (t > dt_bdry) ? bdry(t - dt_bdry) : bdry(0.0);
-			const double dS = Yt - Yt0;
-			if (std::abs(dS) > TOL) {
-				val = (beta(Yt) - beta(Yt0)) / dS;
-			} else
-				val = alpha(Yt);
-		}
+        else if(model == chernoff or model == new_nonlinear) val = 1.0;
+		else 
+            throw std::runtime_error("Unknown model!");
+		
 		return val;
 	}
 //	const ImbibitionFunctions * const imbib_fun() const {
@@ -277,8 +278,9 @@ struct Params{
 //		return &vgImbFunMatrix;
 //	}
 	// Constants
-	double a = 0.0;       ///< amplitude of the artificial alpha function
+   double a = 0.0;       ///< amplitude of the artificial alpha function
    double mean_alpha = 0.0;  ///<   \f$\int_0^1 \alpha(s) ds\f$
+   double mean_alpha_P = 0.0;  ///<   \f$\int_0^1 \alpha({\cal P}(s)) ds\f$
    // Porous media
    double k = 0.0;       ///< permeability
    double poro = 0.0;    ///< porosity
@@ -318,7 +320,7 @@ struct Params{
       */
      void gnu_compare_c(std::set<int> const & show_sim =
           {new_nonlinear, nonlinear, constant_linear, variable_linear, variable_new, chernoff,
-         		 analytic_const, analytic_var, analytic_new, analytic_new1},
+         		 analytic_const, analytic_var, analytic_new},
   			 std::string const & add_to_name ="") const;
 
 private:
@@ -358,9 +360,6 @@ private:
 		   case 'e':
 		   case 'E': simulation[analytic_new] = true;
 		             break;
-		   case 'f':
-		   case 'F': simulation[analytic_new1] = true;
-		             break;
            case 'g':
            case 'G': simulation[chernoff] = true;
                      break;
@@ -397,7 +396,6 @@ Params::Params(std::string const & file_name) :	default_file_name(file_name) {
 		simulation_names[analytic_const] = "anac";
 		simulation_names[analytic_var] = "anav";
 		simulation_names[analytic_new] = "ana_n";
-		simulation_names[analytic_new1] = "ana_1";
         simulation_names[chernoff] = "chernoff";
 	}
 
@@ -487,7 +485,17 @@ Params::Params(std::string const & file_name) :	default_file_name(file_name) {
 	plot_functions();
 	scaled_delta = delta * std::sqrt(k*mean_alpha/poro);
 	std::cout << "Scaled delta = " << scaled_delta << std::endl;
-   return;
+    
+//     /////////////  --  16/03/2016
+// Novi konstantni koeficijent mijenja rješenje ali ne daje ništa bitno bolje.     
+//     Table<Params> table_alphaP(this, &Params::alphaP, 10000);
+//     mean_alpha_P = table_alphaP.interpolate(1.0)/(bdry_transfer(1.0)-bdry_transfer(0.0));
+//     std::cout << "mean_alpha_P = " << mean_alpha_P << std::endl;
+//     std::cout << "mean_alpha_P*(P(1)-P(0)) = " << mean_alpha_P*(bdry_transfer(1.0)-bdry_transfer(0.0)) << std::endl;
+//     std::cout << "mean_alpha = " << mean_alpha << std::endl;
+//     mean_alpha = mean_alpha_P;
+//     ////////////////////////////////////////////////////////////
+    return;
  }
 
 void Params::plot_functions(unsigned int n) const
@@ -505,14 +513,15 @@ void Params::plot_functions(unsigned int n) const
     std::string full_file_name = dir+"/functions.txt";
 
     std::ofstream file (full_file_name);
-    file << "#    S_w        alpha(S_w)        beta(S_w)     bdry_trans(S_w)\n";
+    file << "#    S_w        alpha(S_w)        beta(S_w)     bdry_trans(S_w)    alphaP(S_w)\n";
     for (unsigned int i = 0; i <= n; ++i)
       {
     	const double xi = i*hh;
 	file << std::setw(10) << std::setprecision(8) << xi << "   "
 	     << std::setw(16) << std::setprecision(12) << alpha(xi)  << "   "
 	     << std::setw(16) << std::setprecision(12) << beta(xi)   << "   "
-	     << std::setw(16) << std::setprecision(12) << bdry_transfer(xi)  << "\n";
+	     << std::setw(16) << std::setprecision(12) << bdry_transfer(xi)  << "   "
+         << std::setw(16) << std::setprecision(12) << alphaP(xi) << "\n";
       }
     file.close ();
 
@@ -642,7 +651,7 @@ void Params::gnu_compare_c(std::set<int> const & show_sim,
 	     	time_max = tmp0.second;
 
 	     	if(i == analytic_const || i == analytic_var ||
-	     	   i == analytic_new ||i == analytic_new1){
+	     	   i == analytic_new){
 	     	    auto tmp1 = aux::min_max(name, 1);
 	     	    if(tmp1.first < tmp.first) tmp.first = tmp1.first;
 	     	    if(tmp1.second > tmp.second) tmp.second = tmp1.second;
@@ -676,7 +685,7 @@ void Params::gnu_compare_c(std::set<int> const & show_sim,
 		if (simulation[i] and show_sim.count(i)) {
 			cnt++;
 			if(i == analytic_const || i == analytic_var
-					||i == analytic_new||i == analytic_new1)
+					||i == analytic_new)
      			out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name;
 			else{
 			   out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name + " vol int\",\\\n";

@@ -31,7 +31,7 @@ int chernoff_driver(GV const& gv, Params params)  // take a copy of params
     // analytic solution goes to special driver
     if(params.model == Params::analytic_const || params.model == Params::analytic_var
                                               || params.model == Params::analytic_new
-                                              || params.model == Params::analytic_new1){
+                                              ){
         return lin_analytic_driver(params);
     }
     // <<<1>>>
