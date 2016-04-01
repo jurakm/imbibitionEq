@@ -15,7 +15,6 @@
 
 #include "imbibitionFunctions.hh"
 #include "vangenuchten.hh"
-//#include <dune/common/parametertree.hh>
 
 #include <string>
 #include <ctime>
@@ -480,15 +479,6 @@ void Params::read_input(int argc, char** argv) {
     scaled_delta = delta * std::sqrt(k * mean_alpha / poro);
     std::cout << "Scaled delta = " << scaled_delta << std::endl;
 
-    //     /////////////  --  16/03/2016
-    // Novi konstantni koeficijent mijenja rješenje ali ne daje ništa bitno bolje.     
-    //     Table<Params> table_alphaP(this, &Params::alphaP, 10000);
-    //     mean_alpha_P = table_alphaP.interpolate(1.0)/(bdry_transfer(1.0)-bdry_transfer(0.0));
-    //     std::cout << "mean_alpha_P = " << mean_alpha_P << std::endl;
-    //     std::cout << "mean_alpha_P*(P(1)-P(0)) = " << mean_alpha_P*(bdry_transfer(1.0)-bdry_transfer(0.0)) << std::endl;
-    //     std::cout << "mean_alpha = " << mean_alpha << std::endl;
-    //     mean_alpha = mean_alpha_P;
-    //     ////////////////////////////////////////////////////////////
     return;
 }
 

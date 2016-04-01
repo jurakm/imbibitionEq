@@ -5,13 +5,51 @@
 
  \section Problem
 
-   We solve so called imbibition equation and we calculate first the solution of the nonlinear
-   problem:
+   We solve the imbibition equation and its two possible linearizations. 
+ * We calculate  the solution and the matrix-fracture source term.
+   Imbibition equation is a nonlinear parabolic equation:
    \f[
-       \Phi \frac{\partial S}{\partial t} - \delta^2 k_m \Delta \beta(S) = 0 \quad {\rm in }\;  Y,\; t>0
+       \Phi_m \frac{\partial S}{\partial t} - \delta^2 k_m \Delta \beta_m(S) = 0 \quad {\rm in }\;  Y,\; t>0
    \f]
    \f[  S = {\cal P}(S^f)\quad{\rm on } \;\partial Y,\; t > 0 \f]
    \f[  S = S_0 \quad {\rm on}\; Y,\; t = 0 \f]
+ * Description:
+ * - \f$\Phi_m\f$ is the matrix block porosity. 
+ * - \f$\delta\f$ is relative fracture thickness. That is, if the matrix block size is \f$l\f$ (not present here)
+ *  then the fracture thickness is \f$l\delta\f$. 
+ * - \f$S\f$ is the wetting phase saturation.
+ * - \f$Y = (0,1)^d\f$. Actually, it should be  \f$(\delta/2,1-\delta/2)^d\f$ but we have neglected this for now.
+ * 
+    We also solve two linearized versions of the imbibition equation and
+ * associated matrix-fracture flux (which is our main interest). There are several ways to
+ * linearize the nonlinear imbibition problem:
+ *  \f[
+   \Phi_m \frac{\partial S}{\partial t} - \delta^2 k_m \Delta \beta_m(S) = 0 \quad {\rm in }\;  Y,\; t>0
+   \f]
+   \f[  S = g(t)\quad{\rm on } \;\partial Y,\; t > 0 \f]
+   \f[  S = g(0)\quad {\rm on}\; Y,\; t = 0, \f]
+ * where \f$Y = (0,1)^d\f$.
+ *
+ * Note. We assume fixed domain \f$Y\f$ (independent of \f$\delta\f$)
+ * since \f$\delta\f$ is small and we can replace  \f$Y^\delta = (\delta/2,1-\delta/2)^d\f$
+ * by \f$(0,1)^d\f$.
+ *
+ * All approximations are of the form
+ * \f[
+       \Phi_m \frac{\partial S}{\partial t} - \delta^2 k_m a(t)\Delta S = 0 \quad {\rm in }\;  Y,\; t>0
+   \f]
+   \f[  S = g(t)\quad{\rm on } \;\partial Y,\; t > 0 \f]
+   \f[  S = g(0)\quad {\rm on}\; Y,\; t = 0, \f]
+ * where for \f$a(t)\f$ we have following possibilities:
+ *       - Constant approximation [anac]: \f$ a(t) = \bar\alpha_m,\; \tau(t) = t. \f$
+ *       - Variable approximation [anav]: \f$ a(t) = \alpha_m(g(t)),\; \tau(t) = \int_0^t a(u)du. \f$
+ *       - Variable approximation [ana_n]:
+ *   \f$ a(t) = (\beta_m(g(t))-\beta_m(g(t) -\theta (g(t) -g(0)))/[\theta (g(t)-g(0))],\;
+ *        \tau(t) = \int_0^t a(u)du. \f$
+ *
+ * where \f$\alpha_m(S) = \beta_m'(S)\f$ and  \f$\bar\alpha_m = \int_0^1 \alpha_m(s)\, ds\f$.
+ * The function \f$a(t) \f$ is eliminated by passing to a new time variable
+ * \f$\tau(t) = \int_0^t a(u)du\f$ (except in the first case where \f$a(t) =1\f$).
 
  */
 #ifdef HAVE_CONFIG_H
