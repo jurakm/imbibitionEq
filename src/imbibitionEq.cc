@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
             if(params.simulation[i])
             {
                 params.model = static_cast<Params::Model>(i);
-                std::cout << "Model " << i << " launched.\n";
+                std::cout << "Model " << params.simulation_names[i] << " launched.\n";
                 rets.push_back(std::async(std::launch::async, driver<GV, Params>, gv, params));
                 
             }

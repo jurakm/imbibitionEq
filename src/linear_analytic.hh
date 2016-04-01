@@ -252,8 +252,6 @@ template <typename Params>
 double AnalyticSolution<Params>::tau(double t) const{
 	// In analytic_const mode tau(t) = t and invers function t=t(tau) is simply identity.
 	double val = 0.0;
-//	if(model_ == Params::analytic_const)	val = t;
-//	else val = interpolate(time_, tau_time_, t, last_time_index_);
 
 	if(model_ == Params::analytic_const)	val = t;
 	else val = tau_table.interpolate_y(t);
@@ -265,8 +263,6 @@ template <typename Params>
 double AnalyticSolution<Params>::inv_tau(double tau) const{
 	// In analytic_const mode tau(t) = t and invers function t=t(tau) is simply identity.
 	double val = 0.0;
-//	if(model_ == Params::analytic_const)	val =  tau;
-//	else val = interpolate(tau_time_, time_,  tau, last_time_index_);
 
 	if(model_ == Params::analytic_const)	val = tau;
 	else val = tau_table.interpolate_x(tau);

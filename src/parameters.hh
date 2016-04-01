@@ -137,7 +137,7 @@ namespace aux {
     /// of fluxes.
     // Params::new_nonlinear,   Params::nonlinear,    Params::constant_linear,
     // Params::variable_linear, Params::variable_new, Params::analytic_const,
-    // Params::analytic_var,    Params::analytic_new, Params::analytic_new1
+    // Params::analytic_var,    Params::analytic_new, 
 
     template <typename Params>
     void gnu_compare_c(Params const & params) {
@@ -148,7 +148,7 @@ namespace aux {
             Params::variable_linear,
             Params::variable_new}, "-cmp");
         params.gnu_compare_c({Params::constant_linear, Params::analytic_const}, "-const");
-        params.gnu_compare_c({Params::analytic_var, Params::analytic_new,
+        params.gnu_compare_c({Params::analytic_var,
             Params::variable_linear, Params::variable_new}, "-var");
 
     }
@@ -185,7 +185,7 @@ struct Params {
 
     enum Model {
         new_nonlinear = 0, nonlinear, constant_linear, variable_linear, variable_new,
-        analytic_const, analytic_var, analytic_new, size
+        analytic_const, analytic_var, size
     };
     /**
      * Read all parameters from an input file. It must be called explicitly
@@ -259,9 +259,9 @@ struct Params {
         double val = 1.0; // good value for Params::new_nonlinear and chernoff -- important.
         if (model == analytic_const or model == constant_linear)
             val = mean_alpha;
-        else if (model == analytic_var or model == variable_linear)
+        else if (model == variable_linear)
             val = alpha(bdry(t));
-        else if (model == analytic_new or model == variable_new) {
+        else if (model == analytic_var or model == variable_new) {
             // we have the best results with theta = 0.75.
             const double Yt = bdry(t), Yt0 = bdry(0.0);
             const double dS = Yt - Yt0;
@@ -323,7 +323,7 @@ struct Params {
      *                      file names. Default (for all simulations) is empty string.
      */
     void gnu_compare_c(std::set<int> const & show_sim ={new_nonlinear, nonlinear, constant_linear, variable_linear, variable_new,
-        analytic_const, analytic_var, analytic_new},
+        analytic_const, analytic_var},
     std::string const & add_to_name = "") const;
 
 private:
@@ -357,11 +357,8 @@ private:
                 case 'a':
                 case 'A': simulation[analytic_const] = true;
                     break;
-                case 'b':
-                case 'B': simulation[analytic_var] = true;
-                    break;
                 case 'e':
-                case 'E': simulation[analytic_new] = true;
+                case 'E': simulation[analytic_var] = true;
                     break;
             }
         }
@@ -392,8 +389,8 @@ Params::Params(std::string const & file_name) : default_file_name(file_name) {
             [](double t) {
                 return std::max(std::min(0.5 + 0.51 * std::sin(2 * M_PI * t), 1.0), 0.0);
             });
-    ptfun.push_back([](double t) {
-        return 0.05 + std::min(t, 0.9);
+    ptfun.push_back([this](double t) {
+        return 0.05 + std::min(t/this->tend, 0.9);
     });
     ptfun.push_back([](double t) {
         return 0.05 + std::min(t / 10.0, 0.9);
@@ -411,7 +408,6 @@ Params::Params(std::string const & file_name) : default_file_name(file_name) {
     simulation_names[variable_new] = "vlin_n";
     simulation_names[analytic_const] = "anac";
     simulation_names[analytic_var] = "anav";
-    simulation_names[analytic_new] = "ana_n";
 }
 
 /**
@@ -652,8 +648,8 @@ void Params::gnu_compare_c(std::set<int> const & show_sim,
             auto tmp0 = aux::min_max(name, 0);
             time_max = tmp0.second;
 
-            if (i == analytic_const || i == analytic_var ||
-                    i == analytic_new) {
+            if (i == analytic_const  ||
+                    i == analytic_var) {
                 auto tmp1 = aux::min_max(name, 1);
                 if (tmp1.first < tmp.first) tmp.first = tmp1.first;
                 if (tmp1.second > tmp.second) tmp.second = tmp1.second;
@@ -685,8 +681,7 @@ void Params::gnu_compare_c(std::set<int> const & show_sim,
             out << "   plot \\\n";
         if (simulation[i] and show_sim.count(i)) {
             cnt++;
-            if (i == analytic_const || i == analytic_var
-                    || i == analytic_new)
+            if (i == analytic_const || i == analytic_var)
                 out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name;
             else {
                 out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name + " vol int\",\\\n";
