@@ -61,7 +61,7 @@ void Integration::print(std::string const & file_name, Params const & params) {
 	std::cout << "Printing " << params.simulation_names[params.model] << "\n";
 	std::ofstream out1(file_name);
 
-	if (params.model == Params::new_nonlinear)
+	if (params.model == Params::nonlinear)
 	   out1 << "#     t        Phi d/dt int S   k delta^2 int bdry grad beta(S) . n    bdry(t)\n";
 	else
 	   out1 << "#     t        Phi d/dt int S   k delta^2 alpha(g(t)) int bdry grad S . n    bdry(t)\n";
@@ -81,26 +81,9 @@ void Integration::print(std::string const & file_name, Params const & params) {
 		out1 << std::setw(10) << std::setprecision(4) << time << " "  
 				<< std::setw(12) << std::setprecision(6)
 				<< params.poro * volume_values_der[i].second; //  " = d/dt int S"
-		if (params.model == Params::nonlinear)
-			out1 << "                 " << std::setw(12) << std::setprecision(6)
-					<< params.alpha(params.bdry(time)) * kdd * bdry_values[i].second;
-		else{  // a_g is also good for new_nonlinear and chernoff 
-			out1 << "                 " << std::setw(12) << std::setprecision(6)
-					<< params.a_g(time) * kdd * bdry_values[i].second;
-		}
-//		// "= k delta^2 alpha(g(t)) int bdry grad S .n  "
-//		else if (params.model == Params::new_nonlinear)
-//					out1 << "                 " << std::setw(12) << std::setprecision(6)
-//							<<  kdd * bdry_values[i].second;
-//				// "= k delta^2 int bdry grad beta(S) .n  "
-//		else if (params.model == Params::variable_linear)
-//			out1 << "                 " << std::setw(12) << std::setprecision(6)
-//					<< params.alpha(params.bdry(time)) * kdd * bdry_values[i].second;
-//		// "= k delta^2 alpha(g(t)) int bdry grad S .n  "
-//		else if (params.model == Params::constant_linear)
-//			out1 << "                 " << std::setw(12) << std::setprecision(6)
-//					<< params.mean_alpha * kdd * bdry_values[i].second;
-//		// "= k delta^2 mean_alpha int bdry grad S .n  "
+		out1 << "                 " << std::setw(12) << std::setprecision(6)
+			 << params.a_g(time) * kdd * bdry_values[i].second;
+
 
 		out1 << "             " << std::setw(12) << std::setprecision(6) << params.bdry(time) << "\n";
 	}

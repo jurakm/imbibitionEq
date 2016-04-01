@@ -32,8 +32,7 @@ template<typename GV, typename Params>
 int driver(GV const& gv, Params params) // take a copy of params
 {
     // analytic solution goes to special driver
-    if (params.model == Params::analytic_const|| params.model == Params::analytic_var
-            ) {
+    if (params.model == Params::analytic_const|| params.model == Params::analytic_var) {
         return lin_analytic_driver(params);
     }
     // <<<1>>>
@@ -115,16 +114,7 @@ int driver(GV const& gv, Params params) // take a copy of params
 
     // File name and variable name depending on the model
     std::string filenm = params.str_sname + params.simulation_names[params.model];
-    //	if (params.model == Params::nonlinear)
-    //		filenm = params.str_sname + "nlin";
-    //	else if (params.model == Params::new_nonlinear)
-    //		filenm = params.str_sname + "n_nlin";
-    //	else if (params.model == Params::constant_linear)
-    //		filenm = params.str_sname + "clin";
-    //	else if (params.model == Params::variable_linear)
-    //		filenm = params.str_sname + "vlin";
-    //	else
-    //		throw std::runtime_error("Wrong model.");
+    
 
     Integration integrator;
     // <<<11>>> write out the initial condition
@@ -192,7 +182,7 @@ int driver(GV const& gv, Params params) // take a copy of params
             textwriter.write(filenm + std::to_string(count) + ".txt");
         }
         ////////////////////////////
-        if (params.model != Params::new_nonlinear) {
+        if (params.model != Params::nonlinear) {
             DGFG grad_udgf(gfs, unew);
             integrator.integrate(timeMng.time, udgf, grad_udgf);
         } else {

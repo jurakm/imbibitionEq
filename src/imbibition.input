@@ -1,12 +1,10 @@
 Permeability =  1         # 2.592E5 6.912E4 2.592E3 6.739E2
 Porosity = 0.4
 Delta = 1E-2             #  1E-3    5E-4    1E-4     5E-5
-Model = CVZNMAE
+Model = CVNAE
 #Model = constant_linear [C]
 #Model = variable_linear [V]
-#Model = variable_new    [Z]
 #Model = nonlinear       [N]
-#Model = new_nonlinear   [M]
 #Model = const_analytic  [A]
 #Model = var_analytic    [E]
 BoundaryFunction = 5 # 0 = 0.35 + 0.2 * sin(2*PI*t)
@@ -26,10 +24,10 @@ Q = 0.3          # portion of the mesh points used to resolve BL
 Sigma = 1        # Grading of the mesh inside the layer (?)
 
 [Time]
-Final = 100
+Final = 10
 Dt    = 0.01
-DtOut = 0.1
-DtMax = 0.1
+DtOut = 0.02
+DtMax = 0.02
 
 [Refinement]
 Level = 0

@@ -88,27 +88,14 @@ public:
             lfsu.finiteElement().localBasis().evaluateFunction(it->position(), phi);
 
             // compute solution u (or beta(u)) at integration point
-            RF u = 0.0;
-            if (coeff.model == Params::nonlinear) {
-                for (size_type i = 0; i < lfsu.size(); ++i)
-                    u += x(lfsu, i) * phi[i];
-            }
+//            RF u = 0.0;
+//            if (coeff.model == Params::nonlinear) {
+//                for (size_type i = 0; i < lfsu.size(); ++i)
+//                    u += x(lfsu, i) * phi[i];
+//            }
 
             double alpha = coeff.k * coeff.delta * coeff.delta;
-
-            // Note that function a_g depends on chosen linear model.
-            if (coeff.model == Params::nonlinear)
-                alpha *= coeff.alpha(u);
-            else
-                alpha *= coeff.a_g(time_);
-
-            //			else if (coeff.model == Params::constant_linear)
-            //				alpha *= coeff.mean_alpha;
-            //			else if (coeff.model == Params::variable_linear)
-            //				alpha *= coeff.alpha(coeff.bdry(time_));
-            //			else {
-            //				// if new_nonlinear alpha is not changed
-            //			}
+            alpha *= coeff.a_g(time_);  // a_g = 1 in nonlinear case
             // evaluate gradient of basis functions on reference element
             std::vector<Jacobian> js(lfsu.size());
             lfsu.finiteElement().localBasis().evaluateJacobian(it->position(), js);
@@ -121,7 +108,7 @@ public:
 
             // compute gradient of u or gradient of beta(u)
             Gradient gradu(0.0);
-            if (coeff.model == Params::new_nonlinear) {
+            if (coeff.model == Params::nonlinear) {
                 for (size_type i = 0; i < lfsu.size(); ++i)
                     gradu.axpy(coeff.beta(x(lfsu, i)), gradphi[i]); // grad beta(u)
             } else { // In all other cases calculate grad u.

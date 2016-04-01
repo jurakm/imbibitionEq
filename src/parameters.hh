@@ -136,20 +136,17 @@ namespace aux {
     /// Write gnuplot command file to see the fluxes. Plot certain combination
     /// of fluxes.
     // Params::new_nonlinear,   Params::nonlinear,    Params::constant_linear,
-    // Params::variable_linear, Params::variable_new, Params::analytic_const,
+    // Params::variable_linear,  Params::analytic_const,
     // Params::analytic_var,    Params::analytic_new, 
 
     template <typename Params>
     void gnu_compare_c(Params const & params) {
         params.gnu_compare_c();
-        params.gnu_compare_c({Params::new_nonlinear, Params::nonlinear}, "-nlin");
+        params.gnu_compare_c({Params::nonlinear}, "-nlin");
         params.gnu_compare_c({Params::nonlinear,
-            Params::constant_linear,
-            Params::variable_linear,
-            Params::variable_new}, "-cmp");
+            Params::constant_linear, Params::variable_linear}, "-cmp");
         params.gnu_compare_c({Params::constant_linear, Params::analytic_const}, "-const");
-        params.gnu_compare_c({Params::analytic_var,
-            Params::variable_linear, Params::variable_new}, "-var");
+        params.gnu_compare_c({Params::analytic_var, Params::variable_linear}, "-var");
 
     }
 
@@ -184,7 +181,7 @@ struct Params {
     /// Constants describing different imbibition models.
 
     enum Model {
-        new_nonlinear = 0, nonlinear, constant_linear, variable_linear, variable_new,
+        nonlinear = 0, constant_linear, variable_linear,
         analytic_const, analytic_var, size
     };
     /**
@@ -259,9 +256,9 @@ struct Params {
         double val = 1.0; // good value for Params::new_nonlinear and chernoff -- important.
         if (model == analytic_const or model == constant_linear)
             val = mean_alpha;
-        else if (model == variable_linear)
-            val = alpha(bdry(t));
-        else if (model == analytic_var or model == variable_new) {
+//        else if (model == variable_linear)
+//            val = alpha(bdry(t));
+        else if (model == analytic_var or model == variable_linear) {
             // we have the best results with theta = 0.75.
             const double Yt = bdry(t), Yt0 = bdry(0.0);
             const double dS = Yt - Yt0;
@@ -270,7 +267,7 @@ struct Params {
             } else
                 val = alpha(Yt);
         }
-        else if (model == new_nonlinear) val = 1.0;
+        else if (model == nonlinear) val = 1.0;
         else
             throw std::runtime_error("Unknown model!");
         // if model = nonlinear it will not call this function
@@ -322,7 +319,7 @@ struct Params {
      * @param add_to_name = string to add to a base file name to distinguish different
      *                      file names. Default (for all simulations) is empty string.
      */
-    void gnu_compare_c(std::set<int> const & show_sim ={new_nonlinear, nonlinear, constant_linear, variable_linear, variable_new,
+    void gnu_compare_c(std::set<int> const & show_sim ={nonlinear, constant_linear, variable_linear,
         analytic_const, analytic_var},
     std::string const & add_to_name = "") const;
 
@@ -345,14 +342,8 @@ private:
                 case 'v':
                 case 'V': simulation[variable_linear] = true;
                     break;
-                case 'z':
-                case 'Z': simulation[variable_new] = true;
-                    break;
                 case 'n':
                 case 'N': simulation[nonlinear] = true;
-                    break;
-                case 'm':
-                case 'M': simulation[new_nonlinear] = true;
                     break;
                 case 'a':
                 case 'A': simulation[analytic_const] = true;
@@ -360,6 +351,8 @@ private:
                 case 'e':
                 case 'E': simulation[analytic_var] = true;
                     break;
+                default:
+                    throw std::runtime_error("set_simulation: wrong model selected: " + sim);
             }
         }
     }
@@ -401,11 +394,9 @@ Params::Params(std::string const & file_name) : default_file_name(file_name) {
 
     for (unsigned int i = 0; i < size; ++i)
         simulation[i] = false;
-    simulation_names[new_nonlinear] = "n_nlin";
     simulation_names[nonlinear] = "nlin";
     simulation_names[constant_linear] = "clin";
     simulation_names[variable_linear] = "vlin";
-    simulation_names[variable_new] = "vlin_n";
     simulation_names[analytic_const] = "anac";
     simulation_names[analytic_var] = "anav";
 }
@@ -648,8 +639,7 @@ void Params::gnu_compare_c(std::set<int> const & show_sim,
             auto tmp0 = aux::min_max(name, 0);
             time_max = tmp0.second;
 
-            if (i == analytic_const  ||
-                    i == analytic_var) {
+            if (i == analytic_const  || i == analytic_var) {
                 auto tmp1 = aux::min_max(name, 1);
                 if (tmp1.first < tmp.first) tmp.first = tmp1.first;
                 if (tmp1.second > tmp.second) tmp.second = tmp1.second;
