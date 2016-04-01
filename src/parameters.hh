@@ -142,7 +142,7 @@ namespace aux {
     template <typename Params>
     void gnu_compare_c(Params const & params) {
         params.gnu_compare_c();
-        params.gnu_compare_c({Params::new_nonlinear, Params::nonlinear, Params::chernoff}, "-nlin");
+        params.gnu_compare_c({Params::new_nonlinear, Params::nonlinear}, "-nlin");
         params.gnu_compare_c({Params::nonlinear,
             Params::constant_linear,
             Params::variable_linear,
@@ -184,7 +184,7 @@ struct Params {
     /// Constants describing different imbibition models.
 
     enum Model {
-        new_nonlinear = 0, nonlinear, constant_linear, variable_linear, variable_new, chernoff,
+        new_nonlinear = 0, nonlinear, constant_linear, variable_linear, variable_new,
         analytic_const, analytic_var, analytic_new, size
     };
     /**
@@ -270,7 +270,7 @@ struct Params {
             } else
                 val = alpha(Yt);
         }
-        else if (model == chernoff or model == new_nonlinear) val = 1.0;
+        else if (model == new_nonlinear) val = 1.0;
         else
             throw std::runtime_error("Unknown model!");
         // if model = nonlinear it will not call this function
@@ -287,23 +287,23 @@ struct Params {
     double mean_alpha = 0.0; ///<   \f$\int_0^1 \alpha(s) ds\f$
     double mean_alpha_P = 0.0; ///<   \f$\int_0^1 \alpha({\cal P}(s)) ds\f$
     // Porous media
-    double k = 0.0; ///< permeability
-    double poro = 0.0; ///< porosity
+    double k = 0.0;       ///< permeability
+    double poro = 0.0;    ///< porosity
     double dt_bdry = 0.0; ///< a dt in calculating the mean value of diffusion coefficient
     // Grid generation parameters
-    double delta = 0.0; ///< \f$\delta\f$ parameter
+    double delta = 0.0;    ///< \f$\delta\f$ parameter
     double scaled_delta = 0.0; ///< \f$\delta\sqrt{k\alpha_m/\Phi}\f$
-    double q = 0.0; ///< Bakhvalov grid generation parameter.
-    double sigma = 0.0; ///< Bakhvalov grid generation parameter.
+    double q = 0.0;        ///< Bakhvalov grid generation parameter.
+    double sigma = 0.0;    ///< Bakhvalov grid generation parameter.
     // grid
-    double L = 0.0; ///<  domain side length
-    int N = 0; ///< number of points per side
-    int level = 0; ///< grid refinement level
+    double L = 0.0;        ///<  domain side length
+    int N = 0;             ///< number of points per side
+    int level = 0;         ///< grid refinement level
     // time stepping
-    double dt = 0.0; ///< \f$\Delta t\f$
-    double dtmax = 0.0; ///< maximum \f$\Delta t\f$
-    double dtout = 0.0; ///< time step for output operation
-    double tend = 0.0; ///< final time of the simulation
+    double dt = 0.0;     ///< \f$\Delta t\f$
+    double dtmax = 0.0;  ///< maximum \f$\Delta t\f$
+    double dtout = 0.0;  ///< time step for output operation
+    double tend = 0.0;   ///< final time of the simulation
     // output
     bool vtkout = false; ///< Do output VTK files
     bool txtout = false; ///< Do output GNUPLOT TXT files
@@ -322,7 +322,7 @@ struct Params {
      * @param add_to_name = string to add to a base file name to distinguish different
      *                      file names. Default (for all simulations) is empty string.
      */
-    void gnu_compare_c(std::set<int> const & show_sim ={new_nonlinear, nonlinear, constant_linear, variable_linear, variable_new, chernoff,
+    void gnu_compare_c(std::set<int> const & show_sim ={new_nonlinear, nonlinear, constant_linear, variable_linear, variable_new,
         analytic_const, analytic_var, analytic_new},
     std::string const & add_to_name = "") const;
 
@@ -362,9 +362,6 @@ private:
                     break;
                 case 'e':
                 case 'E': simulation[analytic_new] = true;
-                    break;
-                case 'g':
-                case 'G': simulation[chernoff] = true;
                     break;
             }
         }
@@ -415,7 +412,6 @@ Params::Params(std::string const & file_name) : default_file_name(file_name) {
     simulation_names[analytic_const] = "anac";
     simulation_names[analytic_var] = "anav";
     simulation_names[analytic_new] = "ana_n";
-    simulation_names[chernoff] = "chernoff";
 }
 
 /**

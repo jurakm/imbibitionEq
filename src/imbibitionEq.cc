@@ -70,7 +70,6 @@
 #include "mgf.hh"
 #include "linear_analytic.hh"
 #include "imbibitionFunctions.hh"
-#include "chernoff-driver.hh"
 
 
 //===================================================================
@@ -135,10 +134,8 @@ int main(int argc, char** argv) {
             {
                 params.model = static_cast<Params::Model>(i);
                 std::cout << "Model " << i << " launched.\n";
-                if(i != Params::chernoff)
-                   rets.push_back(std::async(std::launch::async, driver<GV, Params>, gv, params));
-                else
-                   rets.push_back(std::async(std::launch::async, chernoff_driver<GV, Params>, gv, params));
+                rets.push_back(std::async(std::launch::async, driver<GV, Params>, gv, params));
+                
             }
         }
         // wait for all threads to complete before calling gnu_compare_c().
