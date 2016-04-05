@@ -142,7 +142,7 @@ namespace aux {
     void gnu_compare_c(Params const & params) {
         params.gnu_compare_c();
         params.gnu_compare_c({Params::nonlinear}, "-nlin");
-        params.gnu_compare_c({Params::nonlinear,
+        params.gnu_compare_c({Params::nonlinear, 
             Params::constant_linear, Params::variable_linear}, "-cmp");
         params.gnu_compare_c({Params::constant_linear, Params::analytic_const}, "-const");
         params.gnu_compare_c({Params::analytic_var, Params::variable_linear}, "-var");

@@ -37,7 +37,7 @@ class MGF{
     MGF(Params const & params)
       : L_(0.0),  q_(0.0), C_(0.0), tau_(0.0), x_tau_(0.0), derivative_(0.0), iter_(0), N_(0)
       {
-           L_     = params.L;
+           L_     = params.L - params.delta;  // 
            double eps   = params.scaled_delta; // *params.delta;
            q_     = params.q;
            double sigma = params.sigma;

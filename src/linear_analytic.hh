@@ -102,8 +102,8 @@ class AnalyticSolution{
      *  given on an equidistant time mesh and is stored in lin_flux variable.
      */
     void calculate_flux();
-    // beta version
-    void calculate_flux_beta();
+//    // beta version
+//    void calculate_flux_beta();
     /** Print the flux calculated in calculate_linear_const_flux() on a given stream.
      *  If the flux is not already calculated, the function will call calculate_linear_const_flux().
      */
@@ -139,7 +139,7 @@ class AnalyticSolution{
     /** Integrand in calculation of the nonwetting phase flux, scalled with the right factor.
      * Linear constant case. */
     double dg_dt_shifted(double v, double t){ return factor_der *  dg_dt(tau(t) - v*v); }
-    double dbetag_dt_shifted(double v, double t){ return factor_der_beta *  dbetag_dt(tau(t) - v*v); }
+//    double dbetag_dt_shifted(double v, double t){ return factor_der_beta *  dbetag_dt(tau(t) - v*v); }
     /** Integral lower bound. */
     double lower_bound(double t) const { return xi_/(2*std::sqrt(tau(t)));}
     /** Boundary condition at the time t. */
@@ -151,13 +151,13 @@ class AnalyticSolution{
     	return val;
     }
     // This is necessary for the second form of the flux
-    double beta_bdry(double t) const {
-        double val = 0.0;
-        if(model_ == Params::analytic_const)	val = params_.beta(params_.bdry(t));
-        else                                    val = params_.beta(params_.bdry(inv_tau(t))); // t is tau here
-    //   	std::cout << t << " " << val << "\n";
-        return val;
-    }
+//    double beta_bdry(double t) const {
+//        double val = 0.0;
+//        if(model_ == Params::analytic_const)	val = params_.beta(params_.bdry(t));
+//        else                                    val = params_.beta(params_.bdry(inv_tau(t))); // t is tau here
+//    //   	std::cout << t << " " << val << "\n";
+//        return val;
+//    }
     /** Linearized diffusivity coefficient. For different models we have
      * different functions. They are all divided by the mean value of \f$\alpha(S)\f$.
      *  */
@@ -169,18 +169,20 @@ class AnalyticSolution{
     /** Derivative of the boundary value function.  */
     double dg_dt(double t){
     	double val = 0.0;
-    	if(t < h) val = (bdry(t+h) - bdry(t))/h;
-    	else val = (bdry(t+h) - bdry(t-h))/(2*h);
+        double hh = h, fact = bdry(t);
+        if(fact > 0.0) hh *= fact;
+    	if(t < hh) val = (bdry(t+hh) - bdry(t))/hh;
+    	else val = (bdry(t+hh) - bdry(t-hh))/(2*hh);
     	return val;
     }
 
-    /** Derivative of the boundary value function -- beta version.  */
-       double dbetag_dt(double t){
-       	double val = 0.0;
-       	if(t < h) val = (beta_bdry(t+h) - beta_bdry(t))/h;
-       	else val = (beta_bdry(t+h) - beta_bdry(t-h))/(2*h);
-       	return val;
-       }
+//    /** Derivative of the boundary value function -- beta version.  */
+//       double dbetag_dt(double t){
+//       	double val = 0.0;
+//       	if(t < h) val = (beta_bdry(t+h) - beta_bdry(t))/h;
+//       	else val = (beta_bdry(t+h) - beta_bdry(t-h))/(2*h);
+//       	return val;
+//       }
 
     /** Calculate a table (tau_table) of values (t, tau(t)) where
      * \f[ tau(t) = \int_{0}^t \alpha_m( g(s)) ds.\f]
@@ -355,39 +357,39 @@ void AnalyticSolution<Params>::calculate_flux(){
       return;
 }
 
-template <typename Params>
-void AnalyticSolution<Params>::calculate_flux_beta(){
-	  double dt   = params_.dtout;
-      int    Nsteps = params_.tend / dt;
-      double t = dt;
-      lin_flux_beta.resize(Nsteps+1);
-      std::fill(lin_flux_beta.begin(), lin_flux_beta.end(), std::make_pair(0.0,0.0));
-
-      o2scl::funct11 fprim = std::bind(std::mem_fn<double(double,double)>(&AnalyticSolution<Params>::dbetag_dt_shifted),
-    		                           this, std::placeholders::_1, std::cref(t));
-//      o2scl::inte_qag_gsl<> inte_formula;
-      o2scl::inte_adapt_cern<o2scl::funct11, 2000> inte_formula;
-      inte_formula.tol_rel = 1.0e-5;
-      inte_formula.tol_abs = 1.0e-5;
-      // Output flux -- one value for each time instant.
-      // Time loop
-      lin_flux_beta[0].first = 0.0;
-      lin_flux_beta[0].second = 0.0;
-      double res=0.0, err=0.0;
-      for(int it=1; it <=Nsteps; ++it){
-    	  res =-1; err = -1;
-         // Calculate the flux by given formula
-//    	 std::cout << "it = " << it << ", t = " << t << ", tau(t) = " << tau(t) << ", sqrt(tau(t))= " << std::sqrt(tau(t)) << std::endl;;
-         inte_formula.integ_err(fprim,0.0,std::sqrt(tau(t)),res,err);
-//    	 std::cout << ", res = " <<  res << ", err = " << err  << std::endl;
-         lin_flux_beta[it].first = t;
-         lin_flux_beta[it].second = res;
-    //    std::cout << "err = " << err << "\n";
-         t += dt;
-      }
-
-      return;
-}
+//template <typename Params>
+//void AnalyticSolution<Params>::calculate_flux_beta(){
+//	  double dt   = params_.dtout;
+//      int    Nsteps = params_.tend / dt;
+//      double t = dt;
+//      lin_flux_beta.resize(Nsteps+1);
+//      std::fill(lin_flux_beta.begin(), lin_flux_beta.end(), std::make_pair(0.0,0.0));
+//
+//      o2scl::funct11 fprim = std::bind(std::mem_fn<double(double,double)>(&AnalyticSolution<Params>::dbetag_dt_shifted),
+//    		                           this, std::placeholders::_1, std::cref(t));
+////      o2scl::inte_qag_gsl<> inte_formula;
+//      o2scl::inte_adapt_cern<o2scl::funct11, 2000> inte_formula;
+//      inte_formula.tol_rel = 1.0e-5;
+//      inte_formula.tol_abs = 1.0e-5;
+//      // Output flux -- one value for each time instant.
+//      // Time loop
+//      lin_flux_beta[0].first = 0.0;
+//      lin_flux_beta[0].second = 0.0;
+//      double res=0.0, err=0.0;
+//      for(int it=1; it <=Nsteps; ++it){
+//    	  res =-1; err = -1;
+//         // Calculate the flux by given formula
+////    	 std::cout << "it = " << it << ", t = " << t << ", tau(t) = " << tau(t) << ", sqrt(tau(t))= " << std::sqrt(tau(t)) << std::endl;;
+//         inte_formula.integ_err(fprim,0.0,std::sqrt(tau(t)),res,err);
+////    	 std::cout << ", res = " <<  res << ", err = " << err  << std::endl;
+//         lin_flux_beta[it].first = t;
+//         lin_flux_beta[it].second = res;
+//    //    std::cout << "err = " << err << "\n";
+//         t += dt;
+//      }
+//
+//      return;
+//}
 
 template <typename Params>
 void AnalyticSolution<Params>::print_flux(std::ostream & out){
@@ -474,11 +476,11 @@ int lin_analytic_driver(Params params) {
 	a.print_flux(out_flux);
 	out_flux.close();
 
-	a.calculate_flux_beta();
-	const std::string flux_beta( base + "-flux-beta.txt");
-    std::ofstream out_flux_beta(flux_beta);
-	a.print_flux_beta(out_flux_beta);
-	out_flux_beta.close();
+//	a.calculate_flux_beta();
+//	const std::string flux_beta( base + "-flux-beta.txt");
+//    std::ofstream out_flux_beta(flux_beta);
+//	a.print_flux_beta(out_flux_beta);
+//	out_flux_beta.close();
 
 	// 2. Calculate solution
 	// Time loop
