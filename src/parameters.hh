@@ -63,7 +63,7 @@ namespace aux {
      *  @param file_name = file name
      *  @param colon = colon index, starting from zero.
      */
-    std::pair<double, double> min_max(std::string const & file_name, int colon) {
+    std::pair<double, double> min_max(std::string const & file_name, int colon, double scale = 1.0) {
         std::pair<double, double> tmp = {1.0E100, -1.0E100}; // min, max
 
         std::ifstream in(file_name);
@@ -81,7 +81,7 @@ namespace aux {
             for (; it != tokens.end() && i < colon; ++i) ++it;
             if (colon != i) throw std::runtime_error("Too few colons in file " + file_name);
             //	   std::cout << *it << std::endl;
-            double value = std::stod(*it);
+            double value = std::stod(*it)/scale;
             if (value < tmp.first) tmp.first = value;
             if (value > tmp.second) tmp.second = value;
         }
@@ -625,7 +625,7 @@ void Params::gnu_compare_c(std::set<int> const & show_sim,
     out << "#set output \"flux-" << add_to_name << ".tex\"\n";
 
     out << "set xlabel \"time [days]\"\n";
-    out << "set ylabel \"Nonwetting source [m^3/day]\"\n";
+    out << "set title \"Nonwetting source/$\\delta$ [m$^3$/day]\"\n";
     out << "set key left center\n";
     out << "#set grid\n";
 
@@ -639,14 +639,14 @@ void Params::gnu_compare_c(std::set<int> const & show_sim,
             time_max = tmp0.second;
 
             if (i == analytic_const  || i == analytic_var) {
-                auto tmp1 = aux::min_max(name, 1);
+                auto tmp1 = aux::min_max(name, 1, delta);
                 if (tmp1.first < tmp.first) tmp.first = tmp1.first;
                 if (tmp1.second > tmp.second) tmp.second = tmp1.second;
             } else {
-                auto tmp1 = aux::min_max(name, 1);
+                auto tmp1 = aux::min_max(name, 1, delta);
                 if (tmp1.first < tmp.first) tmp.first = tmp1.first;
                 if (tmp1.second > tmp.second) tmp.second = tmp1.second;
-                auto tmp2 = aux::min_max(name, 2);
+                auto tmp2 = aux::min_max(name, 2, delta);
                 if (tmp2.first < tmp.first) tmp.first = tmp2.first;
                 if (tmp2.second > tmp.second) tmp.second = tmp2.second;
 
@@ -671,10 +671,10 @@ void Params::gnu_compare_c(std::set<int> const & show_sim,
         if (simulation[i] and show_sim.count(i)) {
             cnt++;
             if (i == analytic_const || i == analytic_var)
-                out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name;
+                out << "\"" << name << "-flux.txt\" u 1:($2)/" << delta << " w l t \"" << name;
             else {
-                out << "\"" << name << "-flux.txt\" u 1:2 w l t \"" << name + " vol int\",\\\n";
-                out << "\"" << name << "-flux.txt\" u 1:3 w l t \"" << name + " bdr int";
+                out << "\"" << name << "-flux.txt\" u 1:($2)/" << delta << " w l t \"" << name << " vol int\",\\\n";
+                out << "\"" << name << "-flux.txt\" u 1:($3)/" << delta << " w l t \"" << name << " bdr int";
             }
             if (cnt != total_cnt)
                 out << "\",\\\n";
