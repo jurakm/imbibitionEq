@@ -417,7 +417,15 @@ void Params::read_input(int argc, char** argv) {
         std::exit(1);
     }
 
-    k = input_data.get<double> ("Permeability");
+    k = input_data.get<double> ("Permeability");  // in m^2 
+    // Units: time [days]
+    // Pressure: [bars] 
+    // Viscosity: [cP]
+    // Permeability: [m^2] 
+    // Permeability must be multilied by Pc^ T^0/mu^0 
+    // (Pc^0 = 1E5, T^0 = 86400, mu^0 = 1E-3)
+    const double Perm_factor = 1E5 * 86400.0 / 1E-3; 
+    k = k* Perm_factor;
     poro = input_data.get<double> ("Porosity");
     delta = input_data.get<double> ("Delta");
     level = input_data.get<int> ("Refinement.Level");
@@ -431,6 +439,7 @@ void Params::read_input(int argc, char** argv) {
     tend = input_data.get<double> ("Time.Final");
     vtkout = input_data.get<int> ("Output.VTK");
     txtout = input_data.get<int> ("Output.TXT");
+    
     str_fname = ""; //  input_data.get<std::string> ("Output.SimulationBaseName");  -- not needed
     Nout = tend / dtout;
     std::string str_model = input_data.get<std::string> ("Model");

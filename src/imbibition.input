@@ -1,6 +1,6 @@
-Permeability =  1         # 2.592E5 6.912E4 2.592E3 6.739E2
+Permeability =  1E-13    # m^2     # 2.592E5 6.912E4 2.592E3 6.739E2
 Porosity = 0.4
-Delta = 1E-2             #  1E-3    5E-4    1E-4     5E-5
+Delta = 1E-1             #  1E-3    5E-4    1E-4     5E-5
 Model = CVNAE
 #Model = constant_linear [C]
 #Model = variable_linear [V]
