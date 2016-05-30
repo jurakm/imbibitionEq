@@ -170,7 +170,7 @@ class AnalyticSolution{
     double dg_dt(double t){
     	double val = 0.0;
         double hh = h, fact = bdry(t);
-        if(fact > 0.0) hh *= fact;
+        if(fact > 0.0) hh *= fact;  // make size of hh relevant
     	if(t < hh) val = (bdry(t+hh) - bdry(t))/hh;
     	else val = (bdry(t+hh) - bdry(t-hh))/(2*hh);
     	return val;

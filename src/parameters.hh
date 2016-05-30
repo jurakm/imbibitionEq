@@ -233,12 +233,24 @@ struct Params {
     }
 
     /// Saturation boundary condition on the matrix block boundary.
-
-    double bdry(double t) const {
+    double bdry(double t) const  {
         if (flux_funct_index == 0)
             return ptfun[function_index](t);
         return bdry_transfer(ptfun[function_index](t));
+    } 
+    // min_{0< tau < t} bdry(tau)
+    double bdry_min(double t) const {
+        if (flux_funct_index == 0)
+            return ptfun_min[function_index](t);
+        return bdry_transfer(ptfun_min[function_index](t));
     }
+    // max_{0< tau < t} bdry(tau)
+    double bdry_max(double t) const {
+        if (flux_funct_index == 0)
+            return ptfun_max[function_index](t);
+        return bdry_transfer(ptfun_max[function_index](t));
+    }
+    
     ///  \f$\alpha_m({\cal P}(S))\f$  nonlinear diffusivity coefficient in the matrix 
     /// composed with the boundary transfer function
 
@@ -258,8 +270,12 @@ struct Params {
 //        else if (model == variable_linear)
 //            val = alpha(bdry(t));
         else if (model == analytic_var or model == variable_linear) {
-            // we have the best results with theta = 0.75.
-            const double Yt = bdry(t), Yt0 = bdry(0.0);
+            // This is a standard case -- old one!
+//            const double Yt = bdry(t), Yt0 = bdry(0.0);
+            // New implementation -- gives better results in non monotone case.
+            // Now when monotonicity is broken clin and vlin gibe essentially similar 
+            // behaviour. 
+            const double Yt = bdry_max(t), Yt0 = bdry_min(t);
             const double dS = Yt - Yt0;
             if (std::abs(dS) > TOL * std::max(Yt, Yt0)) {
                 val = (beta(Yt) - beta(Yt0)) / (dS);
@@ -324,7 +340,9 @@ struct Params {
 
 private:
     std::string default_file_name;
-    std::vector<std::function<double(double) >> ptfun;
+    std::vector<std::function<double(double) >> ptfun; ///< vector of boundary functions
+    std::vector<std::function<double(double) >> ptfun_min; ///< vector of boundary functions minimum
+    std::vector<std::function<double(double) >> ptfun_max; ///< vector of boundary functions maximum
     unsigned int function_index = 0;
     unsigned int flux_funct_index = 0;
     // implementations of alpha-functions
@@ -364,35 +382,99 @@ private:
 
 Params::Params(std::string const & file_name) : default_file_name(file_name) {
     ptfun.push_back([](double t) {
-        return 0.35 + 0.2 * std::sin(2 * M_PI * t);
+        return 0.5 + 0.5 * std::sin(2 * M_PI * t);
     });
-    ptfun.push_back(
-            [](double t) {
+    ptfun_max.push_back([](double t) {
+        return ( (t < 0.25) ? 0.5 + 0.5 * std::sin(2 * M_PI * t) : 1.0 );
+    });
+    ptfun_min.push_back([](double t) {
+        double tmp = 0.5;
+        if (t >= 0.75) tmp = 0.0;
+        else if(t > 0.5) tmp = 0.5 + 0.5 * std::sin(2 * M_PI * t);
+        
+        return tmp;
+    });
+    // ostale ptfun_min i ptfun_max funkcije su artificijelne. 
+    ptfun.push_back([](double t) {
                 return ((0.9 - 0.1) / M_PI)*std::atan((2 * t - 1) / 2.5)+(0.9 + 0.1) / 2;
             });
+    ptfun_max.push_back([](double t) {
+                return ((0.9 - 0.1) / M_PI)*std::atan((2 * t - 1) / 2.5)+(0.9 + 0.1) / 2;
+            }); 
+    ptfun_min.push_back([](double t) {
+                return ((0.9 - 0.1) / M_PI)*std::atan(-1/2.5)+(0.9 + 0.1) / 2;
+            });  
+            
     ptfun.push_back(
             [](double t) {
                 return -((0.9 - 0.1) / M_PI) * std::atan((2 * t - 1) / 0.1)+(0.9 + 0.1) / 2;
             });
+    ptfun_max.push_back(
+            [](double t) {
+                return -((0.9 - 0.1) / M_PI) * std::atan((2 * t - 1) / 0.1)+(0.9 + 0.1) / 2;
+            });  
+    ptfun_min.push_back(
+            [](double t) {
+                return -((0.9 - 0.1) / M_PI) * std::atan(-1/0.1)+(0.9 + 0.1) / 2;
+            });      
+            
     ptfun.push_back([](double t) {
         return 0.35 - 0.2 * std::sin(2 * M_PI * t);
     });
+    ptfun_max.push_back([](double t) {
+        return 0.35 - 0.2 * std::sin(2 * M_PI * t);
+    });
+    ptfun_min.push_back([](double t) {
+        return 0.35 - 0.2;
+    });
+    
     ptfun.push_back(
             [](double t) {
                 return std::max(std::min(0.5 + 0.51 * std::sin(2 * M_PI * t), 1.0), 0.0);
             });
+    ptfun_max.push_back(
+            [](double t) {
+                return std::max(std::min(0.5 + 0.51 * std::sin(2 * M_PI * t), 1.0), 0.0);
+            }); 
+    ptfun_min.push_back(
+            [](double t) {
+                return 0.5;
+            }); 
+            
     ptfun.push_back([this](double t) {
         return 0.05 + std::min(t/this->tend, 0.9);
     });
+    ptfun_max.push_back([this](double t) {
+        return 0.05 + std::min(t/this->tend, 0.9);
+    });
+    ptfun_min.push_back([this](double t) {
+        return 0.05;
+    });
+    
     ptfun.push_back([](double t) {
         return 0.05 + std::min(t / 10.0, 0.9);
     });
+    ptfun_max.push_back([](double t) {
+        return 0.05 + std::min(t / 10.0, 0.9);
+    });
+    ptfun_min.push_back([](double t) {
+        return 0.05;
+    });
+    
     ptfun.push_back([](double t) {
         return 0.05 + std::min(t / 50.0, 0.9);
     });
-
+    ptfun_max.push_back([](double t) {
+        return 0.05 + std::min(t / 50.0, 0.9);
+    });
+    ptfun_min.push_back([](double t) {
+        return 0.05;
+    });
+    
+    
     for (unsigned int i = 0; i < size; ++i)
         simulation[i] = false;
+    
     simulation_names[nonlinear] = "nlin";
     simulation_names[constant_linear] = "clin";
     simulation_names[variable_linear] = "vlin";
@@ -534,13 +616,15 @@ void Params::plot_functions(unsigned int n) const {
     std::string full_bdry_file_name = dir + "/bdry.txt";
 
     std::ofstream bdry_file(full_bdry_file_name);
-    bdry_file << "#    t          P(g(t))         g(t) \n";
+    bdry_file << "#    t          P(g(t))         g(t)          g_min(t)        g_max(t)\n";
     double dt = tend / n;
     for (unsigned int i = 0; i <= n; ++i) {
         const double ti = i*dt;
         bdry_file << std::setw(10) << std::setprecision(8) << ti << "   "
                 << std::setw(16) << std::setprecision(12) << bdry(ti) << "   "
-                << std::setw(16) << std::setprecision(12) << ptfun[function_index](ti) << "\n";
+                << std::setw(16) << std::setprecision(12) << ptfun[function_index](ti) << "   "
+                << std::setw(16) << std::setprecision(12) << ptfun_min[function_index](ti) << "   "
+                << std::setw(16) << std::setprecision(12) << ptfun_max[function_index](ti) << "\n";
     }
     bdry_file.close();
 
