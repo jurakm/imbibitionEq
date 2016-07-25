@@ -104,7 +104,7 @@ int driver(GV const& gv, Params params) // take a copy of params
     //  Dune::PDELab::Alexander2Parameter<Real> method;               // second order
     Dune::PDELab::OneStepThetaParameter<Real> method(1.0); // implicit first order
     Dune::PDELab::OneStepMethod<Real, IGO, PDESOLVER, U, U> osm(method, igo, pdesolver);
-    osm.setVerbosityLevel(0);
+    osm.setVerbosityLevel(1);
 
     std::vector<std::pair<double, double> > volume_values; // (t, int (t))
     std::vector<std::pair<double, double> > bdry_values; // (t, int (t))
@@ -194,7 +194,7 @@ int driver(GV const& gv, Params params) // take a copy of params
         }
 
         uold = unew;
-        //     std::cout << "t = " << timeMng.time << " (dt = " << timeMng.dt << ")\n";
+        //std::cout << "t = " << timeMng.time << " (dt = " << timeMng.dt << ")\n";
     }
 
     integrator.volume_derivative();
