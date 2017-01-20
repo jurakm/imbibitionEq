@@ -381,6 +381,7 @@ private:
 };
 
 Params::Params(std::string const & file_name) : default_file_name(file_name) {
+    // 0
     ptfun.push_back([](double t) {
         return 0.5 + 0.5 * std::sin(2 * M_PI * t);
     });
@@ -395,6 +396,7 @@ Params::Params(std::string const & file_name) : default_file_name(file_name) {
         return tmp;
     });
     // ostale ptfun_min i ptfun_max funkcije su artificijelne. 
+    // 1
     ptfun.push_back([](double t) {
                 return ((0.9 - 0.1) / M_PI)*std::atan((2 * t - 1) / 2.5)+(0.9 + 0.1) / 2;
             });
@@ -405,6 +407,7 @@ Params::Params(std::string const & file_name) : default_file_name(file_name) {
                 return ((0.9 - 0.1) / M_PI)*std::atan(-1/2.5)+(0.9 + 0.1) / 2;
             });  
             
+    // 2
     ptfun.push_back(
             [](double t) {
                 return -((0.9 - 0.1) / M_PI) * std::atan((2 * t - 1) / 0.1)+(0.9 + 0.1) / 2;
@@ -417,7 +420,8 @@ Params::Params(std::string const & file_name) : default_file_name(file_name) {
             [](double t) {
                 return -((0.9 - 0.1) / M_PI) * std::atan(-1/0.1)+(0.9 + 0.1) / 2;
             });      
-            
+    
+    // 3        
     ptfun.push_back([](double t) {
         return 0.35 - 0.2 * std::sin(2 * M_PI * t);
     });
@@ -428,6 +432,7 @@ Params::Params(std::string const & file_name) : default_file_name(file_name) {
         return 0.35 - 0.2;
     });
     
+    // 4
     ptfun.push_back(
             [](double t) {
                 return std::max(std::min(0.5 + 0.51 * std::sin(2 * M_PI * t), 1.0), 0.0);
@@ -440,9 +445,10 @@ Params::Params(std::string const & file_name) : default_file_name(file_name) {
             [](double t) {
                 return 0.5;
             }); 
-            
+     
+    // 5
     ptfun.push_back([this](double t) {
-        return 0.05 + std::min(t/this->tend, 0.9);
+        return 0.05+ std::min(t/this->tend, 0.9);
     });
     ptfun_max.push_back([this](double t) {
         return 0.05 + std::min(t/this->tend, 0.9);
@@ -451,6 +457,7 @@ Params::Params(std::string const & file_name) : default_file_name(file_name) {
         return 0.05;
     });
     
+    // 6
     ptfun.push_back([](double t) {
         return 0.05 + std::min(t / 10.0, 0.9);
     });
@@ -461,6 +468,7 @@ Params::Params(std::string const & file_name) : default_file_name(file_name) {
         return 0.05;
     });
     
+    // 7
     ptfun.push_back([](double t) {
         return 0.05 + std::min(t / 50.0, 0.9);
     });
@@ -504,7 +512,7 @@ void Params::read_input(int argc, char** argv) {
     // Pressure: [bars] 
     // Viscosity: [cP]
     // Permeability: [m^2] 
-    // Permeability must be multilied by Pc^ T^0/mu^0 
+    // Permeability must be multiplied by Pc^0 T^0/mu^0 
     // (Pc^0 = 1E5, T^0 = 86400, mu^0 = 1E-3)
     const double Perm_factor = 1E5 * 86400.0 / 1E-3; 
     k = k* Perm_factor;

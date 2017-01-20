@@ -45,10 +45,10 @@
  * \section ip Input parameters
  * 
  * Input parameters are given in imbibition.input file (another file name can be given on the
- * command line). All enties are in variable = value form with possible sections. 
+ * command line). All entities are in variable = value form with possible sections. 
  *   - Permeability =  positive value k; units \f$m^2\f$.  Scaled matrix permeability is given by  \f$\delta^2 k\f$, where \f$k\f$ is given in 
  *     the Permeability field. The value of \f$k\f$  should  be proportional (of the same order) to the fracture porosity. 
-     - Porosity = value betwee 0 and 1 (matrix porosity)
+     - Porosity = value between 0 and 1 (matrix porosity)
      - Delta = \f$\delta\f$
      - Model = [CVNAE]  Different models can be simulated in the same run. Here we give models that we 
  *                       want to run. These are:
@@ -154,10 +154,11 @@
 #include <dune/pdelab/constraints/conforming.hh>
 #include <dune/pdelab/gridoperator/gridoperator.hh>
 #include <dune/pdelab/gridoperator/onestep.hh>
-#include <dune/pdelab/backend/istlvectorbackend.hh>
-//#include <dune/pdelab/backend/istl.hh> -- nova verzija pdelaba 
-#include <dune/pdelab/backend/istlmatrixbackend.hh>
-#include <dune/pdelab/backend/istlsolverbackend.hh>
+//#include <dune/pdelab/backend/istlvectorbackend.hh>
+#include <dune/pdelab/backend/istl.hh> 
+#include <dune/pdelab/backend/istl/bcrsmatrixbackend.hh>
+//#include <dune/pdelab/backend/istlmatrixbackend.hh>
+//#include <dune/pdelab/backend/istlsolverbackend.hh>
 #include <dune/pdelab/stationary/linearproblem.hh>
 #include <dune/pdelab/instationary/onestep.hh>
 

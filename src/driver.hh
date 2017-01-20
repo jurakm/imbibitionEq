@@ -47,7 +47,7 @@ int driver(GV const& gv, Params params) // take a copy of params
     typedef Dune::PDELab::QkLocalFiniteElementMap<GV, Coord, Real, fem_order> FEM;
     FEM fem(gv);
     typedef Dune::PDELab::ConformingDirichletConstraints CON;
-    typedef Dune::PDELab::ISTLVectorBackend<> VBE;
+    typedef Dune::PDELab::istl::VectorBackend<> VBE;
     //	typedef Dune::PDELab::istl::VectorBackend<> VBE;
     typedef Dune::PDELab::GridFunctionSpace<GV, FEM, CON, VBE> GFS;
     GFS gfs(gv, fem);
