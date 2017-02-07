@@ -27,20 +27,18 @@
  * \tparam BCType parameter class indicating the type of boundary condition
  */
 template<class BCType, class Params>
-class StationaryLocalOperator : public Dune::PDELab::NumericalJacobianApplyVolume<
-StationaryLocalOperator<BCType, Params> >,
+class StationaryLocalOperator : 
+public Dune::PDELab::NumericalJacobianApplyVolume<StationaryLocalOperator<BCType, Params> >,
 public Dune::PDELab::NumericalJacobianVolume<StationaryLocalOperator<BCType, Params> >,
-public Dune::PDELab::NumericalJacobianApplyBoundary<StationaryLocalOperator<BCType, Params> >,
-public Dune::PDELab::NumericalJacobianBoundary<StationaryLocalOperator<BCType, Params> >,
+//public Dune::PDELab::NumericalJacobianApplyBoundary<StationaryLocalOperator<BCType, Params> >,
+//public Dune::PDELab::NumericalJacobianBoundary<StationaryLocalOperator<BCType, Params> >,
 public Dune::PDELab::FullVolumePattern,
 public Dune::PDELab::LocalOperatorDefaultFlags {
 public:
     // pattern assembly flags
-
     enum {
         doPatternVolume = true
     };
-
     // residual assembly flags
 
     enum {
@@ -80,7 +78,8 @@ public:
         // select quadrature rule
         Dune::GeometryType gt = eg.geometry().type();
         const Dune::QuadratureRule<DF, dim>& rule = Dune::QuadratureRules<DF, dim>::rule(gt, intorder);
-
+        double alpha = coeff.k * coeff.delta * coeff.delta;
+//        std::cout << alpha << std::endl;
         // loop over quadrature points
         for (auto it = rule.begin(); it != rule.end(); ++it) {
             // evaluate basis functions on reference element
@@ -94,7 +93,7 @@ public:
 //                    u += x(lfsu, i) * phi[i];
 //            }
 
-            double alpha = coeff.k * coeff.delta * coeff.delta;
+           
             alpha *= coeff.a_g(time_);  // a_g = 1 in nonlinear case
             // evaluate gradient of basis functions on reference element
             std::vector<Jacobian> js(lfsu.size());

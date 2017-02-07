@@ -58,6 +58,7 @@ struct TimeMng{
   void set_requested_dt(int iterCount){
     if(iterCount < 4) requested_dt *= 1.2;
     if(iterCount > 8) requested_dt /= 1.4;
+    if(requested_dt > dtmax) requested_dt = dtmax;
   }
 
   /**

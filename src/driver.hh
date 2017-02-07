@@ -48,7 +48,6 @@ int driver(GV const& gv, Params params) // take a copy of params
     FEM fem(gv);
     typedef Dune::PDELab::ConformingDirichletConstraints CON;
     typedef Dune::PDELab::istl::VectorBackend<> VBE;
-    //	typedef Dune::PDELab::istl::VectorBackend<> VBE;
     typedef Dune::PDELab::GridFunctionSpace<GV, FEM, CON, VBE> GFS;
     GFS gfs(gv, fem);
 
@@ -88,7 +87,7 @@ int driver(GV const& gv, Params params) // take a copy of params
 
     // <<<8>>> Select a linear solver backend
     typedef Dune::PDELab::ISTLBackend_SEQ_BCGS_SSOR LS;
-    bool verbose = false; //true;
+    bool verbose = false;
     LS ls(5000, verbose);
 
     //  // <<<9>>> Solver for linear problem per stage
@@ -104,7 +103,7 @@ int driver(GV const& gv, Params params) // take a copy of params
     //  Dune::PDELab::Alexander2Parameter<Real> method;               // second order
     Dune::PDELab::OneStepThetaParameter<Real> method(1.0); // implicit first order
     Dune::PDELab::OneStepMethod<Real, IGO, PDESOLVER, U, U> osm(method, igo, pdesolver);
-    osm.setVerbosityLevel(1);
+    osm.setVerbosityLevel(verbose);
 
     std::vector<std::pair<double, double> > volume_values; // (t, int (t))
     std::vector<std::pair<double, double> > bdry_values; // (t, int (t))
@@ -144,8 +143,10 @@ int driver(GV const& gv, Params params) // take a copy of params
 
     // <<<12>>> the time loop
     U unew(gfs, 0.0);
+    int cnt = 0;
     while (!timeMng.done()) {
         ++timeMng;
+        ++cnt;
         // postavi novo vrijeme u BC klasu
         bctype.setTime(timeMng.time);
         cc.clear();
@@ -194,7 +195,8 @@ int driver(GV const& gv, Params params) // take a copy of params
         }
 
         uold = unew;
-        //std::cout << "t = " << timeMng.time << " (dt = " << timeMng.dt << ")\n";
+        std::cout << "cnt = " << cnt << ", t = " << timeMng.time 
+                  << " (dt = " << timeMng.dt << ", noIter = " << noIter << ")\n";
     }
 
     integrator.volume_derivative();

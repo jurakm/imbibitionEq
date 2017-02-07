@@ -229,7 +229,7 @@ public:
          return
              -std::pow(1.0 - x, 2*params.vgm())
              *std::pow(1.0 - swe, -2.0/3)
-             *(1.0/3 + 2*x/swe);
+             *( 1.0/3 + 2*x*(1-swe)/(swe*(1-x)) );
      }
 
 };
