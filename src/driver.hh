@@ -9,6 +9,7 @@
 #include <dune/pdelab/constraints/conforming.hh>
 #include <dune/pdelab/constraints/common/constraints.hh>  // constraints function
 #include <dune/pdelab/gridfunctionspace/interpolate.hh>   // interpolate function
+#include <dune/grid/io/file/vtk/vtksequencewriter.hh>
 
 #include "parameters.hh"
 #include "integration.hh"
@@ -84,6 +85,8 @@ int driver(GV const& gv, Params params) // take a copy of params
     BCExtension<GV, Real, Params> g(gv, params);
     g.setTime(timeMng.time);
     Dune::PDELab::interpolate(g, gfs, uold); // the initial and boundary conditions
+    U unew(gfs, 0.0);
+    unew = uold;
 
     // <<<8>>> Select a linear solver backend
     typedef Dune::PDELab::ISTLBackend_SEQ_BCGS_SSOR LS;
@@ -111,20 +114,23 @@ int driver(GV const& gv, Params params) // take a copy of params
     typedef Dune::PDELab::DiscreteGridFunction<GFS, U> DGF;
     typedef Dune::PDELab::DiscreteGridFunctionGradient<GFS, U> DGFG;
 
+    Integration integrator;
     // File name and variable name depending on the model
     std::string filenm = params.str_sname + params.simulation_names[params.model];
-    
-
-    Integration integrator;
+    Dune::SubsamplingVTKWriter<GV> vtkwriter(gv, fem_order - 1);
+//    DGF udgf(gfs, uold);
+    DGF udgf(gfs, unew);
+    vtkwriter.addVertexData(std::make_shared<Dune::PDELab::VTKGridFunctionAdapter < DGF >> (udgf, filenm));
+    Dune::VTKSequenceWriter<GV> sqwriter(std::make_shared<Dune::SubsamplingVTKWriter<GV>>(vtkwriter), filenm);
     // <<<11>>> write out the initial condition
-    Dune::PDELab::FilenameHelper fn(filenm);
+    //Dune::PDELab::FilenameHelper fn(filenm);
     {
-        DGF udgf(gfs, uold);
         if (params.vtkout) {
-            Dune::SubsamplingVTKWriter<GV> vtkwriter(gv, fem_order - 1);
-            vtkwriter.addVertexData(std::make_shared<Dune::PDELab::VTKGridFunctionAdapter < DGF >> (udgf, filenm));
-            vtkwriter.write(fn.getName(), Dune::VTK::ascii);
-            fn.increment();
+           // Dune::SubsamplingVTKWriter<GV> vtkwriter(gv, fem_order - 1);
+           // vtkwriter.addVertexData(std::make_shared<Dune::PDELab::VTKGridFunctionAdapter < DGF >> (udgf, filenm));
+           // vtkwriter.write(fn.getName(), Dune::VTK::ascii);
+           // fn.increment();
+	   sqwriter.write(timeMng.time);
         }
         if (params.txtout) {
             /////////// Gnuplot output
@@ -142,7 +148,6 @@ int driver(GV const& gv, Params params) // take a copy of params
     }
 
     // <<<12>>> the time loop
-    U unew(gfs, 0.0);
     int cnt = 0;
     while (!timeMng.done()) {
         ++timeMng;
@@ -169,12 +174,12 @@ int driver(GV const& gv, Params params) // take a copy of params
         // kontrola vremenskog koraka
         timeMng.set_requested_dt(noIter);
         // graphics
-        DGF udgf(gfs, unew);
         if (params.vtkout and timeMng.doOutput()) {
-            Dune::SubsamplingVTKWriter<GV> vtkwriter(gv, fem_order - 1);
-            vtkwriter.addVertexData(std::make_shared<Dune::PDELab::VTKGridFunctionAdapter < DGF >> (udgf, filenm));
-            vtkwriter.write(fn.getName(), Dune::VTK::ascii);
-            fn.increment();
+           // Dune::SubsamplingVTKWriter<GV> vtkwriter(gv, fem_order - 1);
+           // vtkwriter.addVertexData(std::make_shared<Dune::PDELab::VTKGridFunctionAdapter < DGF >> (udgf, filenm));
+           // vtkwriter.write(fn.getName(), Dune::VTK::ascii);
+           // fn.increment();
+	    sqwriter.write(timeMng.time);
         }
         if (params.txtout and timeMng.doOutput()) {
             /////////// Gnuplot output
